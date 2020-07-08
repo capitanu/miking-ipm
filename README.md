@@ -59,6 +59,7 @@ Note: you need to source **src/models/modelVisualizer.mc** in your source file.
 	
 # Models
 
+
 This environment supports the datatypes of type _model_. The model type extends the functions already available in the datatypes to be able to visualize them.
 
 This includes:
