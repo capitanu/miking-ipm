@@ -31,11 +31,18 @@ let modelPrintDotWithOptions = lam model. lam direction. lam vSettings.
     else match model with Digraph(digraph,v2str,l2str) then
         graphPrintDot digraph v2str l2str direction "digraph" vSettings
     else match model with NFA(nfa,input,state2str,label2str) then
-        nfaPrintDot nfa state2str label2str direction vSettings
+        nfaPrintDot nfa state2str label2str direction vSettings "" (negi 1)
     else match model with DFA(dfa,input,state2str,label2str) then
-        nfaPrintDot dfa state2str label2str direction vSettings
+        nfaPrintDot dfa state2str label2str direction vSettings "" (negi 1)
     else match model with BTree(tree, node2str) then
         btreePrintDot tree node2str direction vSettings
+    else ""
+
+let modelPrintDotSimulateTo = lam model. lam steps. lam direction. lam vSettings.
+    match model with NFA(nfa,input,state2str,label2str) then
+        nfaPrintDot nfa state2str label2str direction vSettings input steps
+    else match model with DFA(dfa,input,state2str,label2str) then
+        nfaPrintDot dfa state2str label2str direction vSettings input steps
     else ""
 
 -- converts and prints the given model in dot.

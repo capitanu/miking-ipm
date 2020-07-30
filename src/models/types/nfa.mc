@@ -136,25 +136,35 @@ let nfaConstr = lam s. lam trans. lam alph. lam startS. lam accS. lam eqv. lam e
     else {}
 
 -- prints a NFA in dot.
-let nfaPrintDot = lam nfa. lam v2str. lam l2str. lam direction. lam vSettings.
+let nfaPrintDot = lam nfa. lam v2str. lam l2str. lam direction. lam vSettings. lam input. lam steps.
     let eqv = nfaGetEqv nfa in
-    -- let eqEdge = (lam a. lam b. and (eqv a.0 b.0) (eqv a.1 b.1)) in
+
+    let path = (if (lti (negi 1) steps) then slice (nfaMakeEdgeInputPath nfa.startState input nfa) 0 steps
+        else []) in
+    let currentState = if (eqi steps 0) then nfa.startState
+        else if (lti steps 0) then None()
+        else (last path).1 in 
+    let finalEdge = if (lti steps 0) then None() else last path in
     let dotVertices = join [[initDotVertex "start" "fontcolor=white color=white"],
         map (lam v. 
             let dbl = if (any (lam x. eqv x v) nfa.acceptStates) then "shape=doublecircle" else "" in
+            let active = (if (lti (negi 1) steps) then 
+                if (eqv v currentState)  then getActiveNodeSetting () else ""
+            else "") in
             let extra = find (lam x. eqv x.0 v) vSettings in
-            let extraSettings = strJoin " " [dbl, (match extra with Some e then e.1 else "")] in
+            let extraSettings = strJoin " " [dbl,active,(match extra with Some e then e.1 else "")] in
             initDotVertex (v2str v) extraSettings)
         (getStates nfa)] in
-    let dotEdges = join [[initDotEdge "start" nfa.startState "start" "->" ""],
+    let startEdgeStyle = if (lti (negi 1) steps) then "" else "style=solid" in
+    let eqEdge = (lam a. lam b. and (eqv a.0 b.0) (eqv a.1 b.1)) in
+    let dotEdges = join [[initDotEdge "start" nfa.startState "start" "->" startEdgeStyle],
         map (lam e. 
-            --let _ =  if (lti (negi 1) steps) then 
-            --    (
-            --    if (eqEdge (e.0,e.1) finalEdge) then print "edge [color=darkgreen style=bold];\n"
-            --    else if (setMem eqEdge (e.0,e.1) path) then print "edge [color= black style=bold];\n"
-            --    else print "edge [color=black style=dashed];\n"
-            --) else "" in
-            initDotEdge (v2str e.0) (v2str e.1) (l2str e.2) "->" "")
+            let extra = if (lti (negi 1) steps) then 
+                if (eqEdge (e.0,e.1) finalEdge) then "color=darkgreen style=bold"
+                else if (setMem eqEdge (e.0,e.1) path) then "style=bold"
+                else "color=black style=dashed"
+            else "" in
+            initDotEdge (v2str e.0) (v2str e.1) (l2str e.2) "->" extra)
         (getTransitions nfa)] in
     printDot "digraph" direction (getStdNodeSettings ()) dotVertices dotEdges
 
