@@ -36,7 +36,7 @@ let formatEdges = lam edges. lam v2s. lam l2s. lam eqv.
     let edges_string = map (lam x. (x.0,x.1,l2s x.2)) edges in
     formatAndSquashEdges edges_string v2s eqv
         
--- Formatting the states
+-- format all the states
 let formatStates = lam states. lam state2str.
     formatVertices states state2str
 
@@ -44,7 +44,7 @@ let formatStates = lam states. lam state2str.
 let formatTransitions = lam trans. lam v2s. lam l2s. lam eqv.
     formatEdges trans v2s l2s eqv
     
--- Getting the input path formated
+-- getting the input path formated
 let formatInputPath = lam path. lam state2string.
     foldl (lam output. lam elem.
         foldl concat [] [output,
@@ -59,42 +59,6 @@ let formatInput = lam input. lam label2str.
     foldl (lam output. lam elem.
         foldl concat [] [output,"\"" ,label2str elem, "\","]
     ) "" input
-
--- Traversing the tree to format the states
-recursive
-let formatBTreeStates = lam btree. lam n2s. lam output.
-    match btree with BTree t then
-    formatBTreeStates t n2s ""
-    else match btree with Nil () then
-    output
-    else match btree with Leaf v then foldl concat [] [output, formatVertex (n2s v)]
-    else match btree with Node n then
-    let output =  foldl concat [] [output, formatVertex (n2s n.0)] in
-    let output = formatBTreeStates n.1 n2s output in
-    let output = formatBTreeStates n.2 n2s output in
-    output
-    else "Error, incorrect binary tree"
-end
-
--- Traversing the tree to format the transitions (edges)
-recursive
-let formatBTreeEdges = lam btree. lam n2s. lam from. lam output.
-    match btree with BTree t then
-        match t with Node n then
-            let output = formatBTreeEdges n.1 n2s n.0 "" in
-            formatBTreeEdges n.2 n2s n.0 output
-        else ""
-    else match btree with Nil () then
-        output
-    else match btree with Leaf v then
-        foldl concat [] [output, formatEdge (n2s from) (n2s v) ""]
-    else match btree with Node n then
-        let output = foldl concat [] [output, formatEdge (n2s from) (n2s n.0) ""] in
-        let output = formatBTreeEdges n.1 n2s n.0 output in
-        let output = formatBTreeEdges n.2 n2s n.0 output in
-        output
-    else "Wrong input"
-end
 
 -- return a string with n tabs
 let tab = lam n. if(lti n 0) then error "Number of tabs can not be smaller than 0" 
@@ -131,7 +95,7 @@ let nfaVisual = lam nfa. lam input. lam s2s. lam l2s. lam nfaType.
             (formatStates (getStates nfa) s2s),
             "],\n ",
             "\"transitions\" : [\n",
-            (formatTransitions (getTransitions nfa) s2s l2s (getEqv nfa)),
+            (formatTransitions (getTransitions nfa) s2s l2s (nfaGetEqv nfa)),
             "], \n ",
             "\"startState\" : \"", (s2s nfa.startState),"\",\n ",
             "\"acceptedStates\" : [", foldl concat [] (map (lam s. foldl concat [] ["\"", (s2s s), "\","]) nfa.acceptStates),"],\n",
@@ -159,10 +123,10 @@ let graphVisual = lam model. lam vertex2str. lam edge2str. lam graphType.
     formatGraph nodes edges graphType
 
 -- format a tree to JS code for visualizing
-let treeVisual = lam model. lam node2str.
-    let nodes = formatBTreeStates model node2str "" in
-    let edges = formatBTreeEdges model node2str 0 "" in
-    formatGraph nodes edges "tree"
+let treeVisual = lam model. lam v2str.
+    let vertices = formatVertices (treeVertices model) v2str in
+    let edges = foldl concat [] (map (lam e. formatEdge (v2str e.0) (v2str e.1) e.2) (treeEdges model ())) in
+    formatGraph vertices edges "tree"
 
 -- make all models into string object
 let visualize = lam models.
@@ -171,7 +135,7 @@ let visualize = lam models.
             match model with Digraph(model,vertex2str,edge2str) then
                 graphVisual model vertex2str edge2str "digraph"
             else match model with DFA(model,input,state2str,label2str) then
-                dfaVisual model input state2str label2str "dfa"
+                nfaVisual model input state2str label2str "dfa"
             else match model with Graph(model,vertex2str,edge2str) then
                 graphVisual model vertex2str edge2str "graph"
             else match model with NFA(model,input,state2str,label2str) then

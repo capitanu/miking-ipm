@@ -45,7 +45,7 @@ let nfa = nfaConstr nfaStates nfaTransitions nfaAlphabet nfaStartState nfaAccept
 
 
 -- create your BTree
-let btree = BTree (Node(2, Node(3, Nil (), Leaf 4), Leaf 5)) in
+let btree = btreeConstr (Node(2, Node(3, Nil (), Leaf 4), Leaf 5)) eqi in
 
 visualize [
     -- accepted by the DFA
