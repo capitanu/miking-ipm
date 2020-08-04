@@ -55,7 +55,7 @@ let formatStates = lam states. lam state2str. lam eqv. lam displayNames.
 let formatTransitions = lam trans. lam v2s. lam l2s. lam eqv.
     formatEdges trans v2s l2s eqv
     
--- Getting the input path formated
+-- getting the input path formated
 let formatInputPath = lam path. lam state2string.
     foldl (lam output. lam elem.
         foldl concat [] [output,
@@ -70,61 +70,6 @@ let formatInput = lam input. lam label2str.
     foldl (lam output. lam elem.
         foldl concat [] [output,"\"" ,label2str elem, "\","]
     ) "" input
-
--- Traversing the tree to format the states
-recursive
-let formatBTreeStates = lam btree. lam n2s. lam output. lam displayNames.
-    match btree with BTree t then
-        formatBTreeStates t n2s "" displayNames
-    else match btree with Nil () then
-        output
-    else match btree with Leaf v then foldl concat [] [output, formatVertex (n2s v) (getDisplayName (n2s v) displayNames n2s)]
-    else match btree with Node n then
-        let output =  foldl concat [] [output, formatVertex (n2s n.0) (getDisplayName (n2s n.0) displayNames n2s)] in 
-        let output = formatBTreeStates n.1 n2s output displayNames in 
-        let output = formatBTreeStates n.2 n2s output displayNames in
-        output
-    else "Error, incorrect binary tree"
-end
-
--- Traversing the tree to format the transitions (edges)
-recursive
-let formatBTreeEdges = lam btree. lam n2s. lam from. lam output.
-    match btree with BTree t then
-        match t with Node n then
-            let output = formatBTreeEdges n.1 n2s n.0 "" in
-            formatBTreeEdges n.2 n2s n.0 output
-        else ""
-    else match btree with Nil () then
-        output
-    else match btree with Leaf v then
-        foldl concat [] [output, formatEdge (n2s from) (n2s v) ""]
-    else match btree with Node n then
-        let output = foldl concat [] [output, formatEdge (n2s from) (n2s n.0) ""] in
-        let output = formatBTreeEdges n.1 n2s n.0 output in
-        let output = formatBTreeEdges n.2 n2s n.0 output in
-        output
-    else "Wrong input"
-end
-
--- return a string with n tabs
-let tab = lam n. if(lti n 0) then error "Number of tabs can not be smaller than 0" 
-    else (unfoldr (lam b. if eqi b n then None () else Some ('\t', addi b 1)) 0)
-    
--- add tabs after every \n to string, tab according to brackets ('{','}','[,']')
-recursive
-let addTabs = lam inpt. lam t.
-    if (eqi (length inpt) 0 ) then ""
-    else if (eqi (length inpt) 1) then [head inpt]
-    else
-    let first = head inpt in
-    let rest = tail inpt in
-    let next = head rest in
-    let tabs = (if or (eqchar first '{') (eqchar first '[') then addi t 1
-        else if or (eqchar next '}') (eqchar next ']') then subi t 1
-        else t) in
-    if eqchar first '\n' then concat (concat "\n" (tab tabs)) (addTabs rest tabs) else cons first (addTabs rest tabs)
-end
 
 -- (any (lam x. or (eqchar x '{') (eqchar x '[')) first)
 -- format NFA to JS code for visualizing
@@ -142,7 +87,7 @@ let nfaVisual = lam nfa. lam input. lam s2s. lam l2s. lam nfaType. lam displayNa
             (formatStates (getStates nfa) s2s (getEqv nfa) displayNames),
             "],\n ",
             "\"transitions\" : [\n",
-            (formatTransitions (getTransitions nfa) s2s l2s (getEqv nfa)),
+            (formatTransitions (getTransitions nfa) s2s l2s (nfaGetEqv nfa)),
             "], \n ",
             "\"startState\" : \"", (s2s nfa.startState),"\",\n ",
             "\"acceptedStates\" : [", foldl concat [] (map (lam s. foldl concat [] ["\"", (s2s s), "\","]) nfa.acceptStates),"],\n",

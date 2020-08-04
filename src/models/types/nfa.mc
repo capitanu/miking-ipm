@@ -2,6 +2,7 @@ include "graph.mc"
 include "char.mc"
 include "map.mc"
 include "string.mc"
+include "../todot.mc"
 
 -- Represents a nondeterministic finite automaton
 -- Equality and print functions are required for
@@ -24,11 +25,11 @@ type NFA = {
 
 
 -- get equality function for states
-let getEqv = lam dfa.
+let nfaGetEqv = lam dfa.
     dfa.graph.eqv
 
 -- get equality functions for labels
-let getEql = lam dfa.
+let nfaGetEql = lam dfa.
     dfa.graph.eql
 
 -- get all states in nfa
@@ -138,47 +139,38 @@ let nfaConstr = lam s. lam trans. lam alph. lam startS. lam accS. lam eqv. lam e
     foldl nfaAddTransition (foldl nfaAddState initNfa s) trans
     else {}
 
-let printList = lam list. 
-    map (lam x. print x) list
+-- prints a NFA in dot.
+let nfaPrintDot = lam nfa. lam v2str. lam l2str. lam direction. lam vSettings. lam input. lam steps.
+    let eqv = nfaGetEqv nfa in
 
-let nfaPrintDotWithStates = lam nfa. lam v2str. lam l2str. lam direction. lam activeState.
-    let eqv = getEqv nfa in
-    let edges = getTransitions nfa in
-    let vertices = getStates nfa in
-    let _ = print "digraph {" in
-    let _ = printList ["rankdir=", direction, ";\n"] in
-    let _ = printList ["node [style=filled fillcolor=white shape=circle];"] in
-    let _ = map 
-        (lam v. 
-            let _ = print (v2str v) in
-            let dbl = (if (any (lam x. eqv x v) nfa.acceptStates) then "shape=doublecircle " else "") in
-            let active = match activeState with () then "" else (
-                if (eqv v activeState) then "fillcolor=darkgreen color=darkgreen fontcolor = white" else ""
-            ) in
-            printList ["[", dbl, active, "];"])
-        vertices in
-    let _ = print "start [fontcolor = white color = white];\n" in
-    let _ = printList ["start -> ", nfa.startState, "[label=start];"] in
-    let eqEdge = (lam a. lam b. if and (eqv a.0 b.0) (eqv a.1 b.1) then true else false) in
-    let _ = map
-        (lam e. 
-            --let _ =  if (lti (negi 1) steps) then 
-            --    (
-            --    if (eqEdge (e.0,e.1) finalEdge) then print "edge [color=darkgreen style=bold];\n"
-            --    else if (setMem eqEdge (e.0,e.1) path) then print "edge [color= black style=bold];\n"
-            --    else print "edge [color=black style=dashed];\n"
-            --) else "" in
-            let _ = print (v2str e.0) in
-            let _ = print " -> " in
-            let _ = print (v2str e.1) in
-            let _ = print "[label=\"" in
-            let _ = print (l2str e.2) in
-            print "\"];")
-        edges in
-    let _ = print "}\n" in ()
-
-let nfaPrintDot = lam nfa. lam v2str. lam l2str. lam direction.
-    nfaPrintDotWithStates nfa v2str l2str direction ()
+    let path = (if (lti (negi 1) steps) then slice (nfaMakeEdgeInputPath nfa.startState input nfa) 0 steps
+        else []) in
+    let currentState = if (eqi steps 0) then nfa.startState
+        else if (lti steps 0) then None()
+        else (last path).1 in 
+    let finalEdge = if (lti steps 0) then None() else last path in
+    let dotVertices = join [[initDotVertex "start" "fontcolor=white color=white"],
+        map (lam v. 
+            let dbl = if (any (lam x. eqv x v) nfa.acceptStates) then "shape=doublecircle" else "" in
+            let active = (if (lti (negi 1) steps) then 
+                if (eqv v currentState)  then getActiveNodeSetting () else ""
+            else "") in
+            let extra = find (lam x. eqv x.0 v) vSettings in
+            let extraSettings = strJoin " " [dbl,active,(match extra with Some e then e.1 else "")] in
+            initDotVertex (v2str v) extraSettings)
+        (getStates nfa)] in
+    let startEdgeStyle = if (lti (negi 1) steps) then "" else "style=solid" in
+    let eqEdge = (lam a. lam b. and (eqv a.0 b.0) (eqv a.1 b.1)) in
+    let dotEdges = join [[initDotEdge "start" nfa.startState "start" "->" startEdgeStyle],
+        map (lam e. 
+            let extra = if (lti (negi 1) steps) then 
+                if (eqEdge (e.0,e.1) finalEdge) then "color=darkgreen style=bold"
+                else if (setMem eqEdge (e.0,e.1) path) then "style=bold"
+                else "color=black style=dashed"
+            else "" in
+            initDotEdge (v2str e.0) (v2str e.1) (l2str e.2) "->" extra)
+        (getTransitions nfa)] in
+    printDot "digraph" direction (getStdNodeSettings ()) dotVertices dotEdges
 
 mexpr
 let alphabet = ['0','1'] in

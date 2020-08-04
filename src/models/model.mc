@@ -1,6 +1,7 @@
 include "types/btree.mc"
 include "types/dfa.mc"
 include "types/nfa.mc"
+include "todot.mc"
 
 -- Represents models that can be visualized and its associated data.
 -- Also provides toDot functions for all types defined below
@@ -11,47 +12,42 @@ type Model
     con NFA     : (NFA,input, state2str,  label2str, displayNames) -> Model
     con BTree   : (BTree,node2str,                   displayNames) -> Model
 
-let printList = lam list. 
-    map (lam x. print x) list
+-- prints a graph in dot.
+let graphPrintDot = lam graph. lam v2str. lam l2str. lam direction. lam graphType. lam vSettings.
+    let delimiter = if ((setEqual eqchar) graphType "graph") then "--" else "->" in
+    let dotVertices = map (lam v. 
+        let extra = find (lam x. graph.eqv x.0 v) vSettings in
+        initDotVertex (v2str v) (match extra with Some e then e.1 else "")
+    ) (graphVertices graph) in
+    let dotEdges = map (lam e. initDotEdge (v2str e.0) (v2str e.1) (l2str e.2) delimiter "") (graphEdges graph) in
+    printDot graphType direction (getStdNodeSettings ()) dotVertices dotEdges
 
-let graphPrintDot = lam graph. lam v2str. lam l2str. lam direction.
-    let edges = graphEdges graph in
-    let vertices = graphVertices graph in
-    let _ = print "graph {" in
-    let _ = printList ["rankdir=", direction, ";\n"] in
-    let _ = printList ["node [style=filled fillcolor=white shape=circle];"] in
-    let _ = map 
-        (lam v. 
-            let _ = print (v2str v) in
-            print " [];") 
-        vertices in
-    let _ = map
-        (lam e. let _ = print (v2str e.0) in
-            let _ = print " -- " in
-            let _ = print (v2str e.1) in
-            let _ = print "[label=\"" in
-            let _ = print (l2str e.2) in
-            print "\"];")
-        edges in
-    let _ = print "}\n" in ()
-
-let modelPrintDot = lam model. lam direction.
-    match model with Graph(graph,v2str,l2str,_) then
-        graphPrintDot graph v2str l2str direction
-    else match model with Digraph(digraph,v2str,l2str,_) then 
-        -- Direction not working atm.
-        digraphPrintDot digraph v2str l2str
-    else match model with NFA(nfa,input,state2str,label2str,_) then
-        nfaPrintDot nfa state2str label2str direction
-    else match model with DFA(dfa,input,state2str,label2str,_) then
-        dfaPrintDot dfa state2str label2str direction
-    else match model with BTree(tree, node2str,_) then
-        match tree with BTree(t) then
-            -- Direction not working atm.
-            let _ = btreePrintDot t node2str in
-            ()
-        else "" 
+-- converts and prints the given model in dot. vSettings is a seqence of 
+-- two element tuples, the first element refers to the name of the vertex, 
+-- the second should be a string with custom graphviz settings.
+let modelPrintDotWithOptions = lam model. lam direction. lam vSettings.
+    match model with Graph(graph,v2str,l2str) then
+        graphPrintDot graph v2str l2str direction "graph" vSettings
+    else match model with Digraph(digraph,v2str,l2str) then
+        graphPrintDot digraph v2str l2str direction "digraph" vSettings
+    else match model with NFA(nfa,input,state2str,label2str) then
+        nfaPrintDot nfa state2str label2str direction vSettings "" (negi 1)
+    else match model with DFA(dfa,input,state2str,label2str) then
+        nfaPrintDot dfa state2str label2str direction vSettings "" (negi 1)
+    else match model with BTree(tree, node2str) then
+        btreePrintDot tree node2str direction vSettings
     else ""
+
+let modelPrintDotSimulateTo = lam model. lam steps. lam direction. lam vSettings.
+    match model with NFA(nfa,input,state2str,label2str) then
+        nfaPrintDot nfa state2str label2str direction vSettings input steps
+    else match model with DFA(dfa,input,state2str,label2str) then
+        nfaPrintDot dfa state2str label2str direction vSettings input steps
+    else ""
+
+-- converts and prints the given model in dot.
+let modelPrintDot = lam model. lam direction.
+    modelPrintDotWithOptions model direction []
 
 mexpr
 let alfabeth = ['0','1'] in

@@ -1,37 +1,62 @@
 include "string.mc"
+include "../todot.mc"
 
-type BTree
-    con BTree : (BTree) -> BTree
+type BTreeModel
     con Node  : (a,BTree,BTree) -> BTree 
     con Leaf  : (a) -> BTree
     con Nil   : () -> BTree
 
+type BTree = {
+    tree: BTreeModel,
+    eqv: a -> a -> Bool
+}
+
+-- constructor for the BTree
+let btreeConstr = lam tree. lam eqv.
+    {tree = tree, eqv = eqv}
+
 recursive
-let btreeEdgesPrintDot = lam tree. lam from. lam node2str.
-    match from with None () then
-        match tree with Node n then
-            let _ = btreeEdgesPrintDot n.1 n.0 node2str in
-            let _ = btreeEdgesPrintDot n.2 n.0 node2str in ()
-        else "" 
-    else match tree with Node n then
-        let _ = map (lam x. print x) [(node2str from), "->" ,(node2str n.0),"\n"] in 
-        let _ = btreeEdgesPrintDot n.1 n.0 node2str in
-        let _ = btreeEdgesPrintDot n.2 n.0 node2str in ()
-    else match tree with Nil () then ""
-    else match tree with Leaf v then
-        let _ = map (lam x. print x) [(node2str from), "->" ,(node2str v),"\n"] in ()
-    else ""
+let treeEdgesModel = lam tree. lam from.
+    match tree with Node n then
+        join [match from with () then [] else [(from,n.0,"")], 
+            treeEdgesModel n.1 n.0,
+            treeEdgesModel n.2 n.0]
+    else match tree with Leaf v then [(from,v,"")]
+    else []
 end
 
-let btreePrintDot = lam tree. lam node2str.
-    let _ = print "digraph {" in 
-    let _  = btreeEdgesPrintDot tree (None()) node2str in 
-    let _ = print "} " in
-    ()
+-- get all edges of the BTree in correct render order.
+let treeEdges = lam tree. treeEdgesModel tree.tree
+
+recursive
+let treeVerticesModel = lam tree.
+    match tree with Node t then
+        join [[t.0], 
+        treeVerticesModel t.1,
+        treeVerticesModel t.2]
+    else match tree with Leaf v then [v]
+    else []
+end
+
+-- get all vertices of the BTree in correct render order.
+let treeVertices = lam tree. treeVerticesModel tree.tree
+
+-- prints a btree in dot.
+let btreePrintDot = lam tree. lam node2str. lam direction. lam vSettings.
+    let dotEdges = map (lam e. initDotEdge (node2str e.0) (node2str e.1) "" "->" "") (treeEdges tree ()) in
+    let dotVertices = map (lam v. 
+        let extra = find (lam x. tree.eqv x.0 v) vSettings in
+        initDotVertex (node2str v) (match extra with Some e then e.1 else "")
+    ) (treeVertices tree) in
+    printDot "digraph" direction (getStdNodeSettings ()) dotVertices dotEdges
 
 mexpr
-let tree = BTree(Node(2, Nil (), Leaf 3)) in
-utest match tree with BTree t then t else 1 with Node(2, Nil (), Leaf 3) in
-utest match tree with BTree Node t then t.0 else (negi 100) with 2 in
-utest match tree with BTree Node t then t.1 else (negi 100) with Nil () in
-utest match tree with BTree Node t then t.2 else (negi 100) with Leaf 3 in ()
+let treeModel = Node(2, Nil (), Leaf 3) in
+let tree = btreeConstr treeModel eqi in
+utest match treeModel with Node t then t.0 else (negi 100) with 2 in
+utest match treeModel with Node t then t.1 else (negi 100) with Nil () in
+utest match treeModel with Node t then t.2 else (negi 100) with Leaf 3 in
+utest treeEdgesModel treeModel () with [(2,3,"")] in
+utest treeEdges tree () with [(2,3,"")] in
+utest treeVerticesModel treeModel with [2,3] in
+utest treeVertices tree with [2,3] in ()

@@ -180,7 +180,7 @@ This command then creates your new file:
 
 The filetype decides the type of file you are going to get. It can for example be -Tjpg. -Tps or -Tpdf. The input file will in this case be data-source.js. If you want to take the input directly without a file, the commands can also be piped:
 
-	mi "NAME-OF-CODE-FILE.mc" | dot  -"YOUR-FILETYPE" -o "NAME-OF-OUTPUT-FILE"
+	mi /path/to/source.mc | dot  [-Tjpg | -Tpdf | -Tps] -o /path/to/output
 
 # Examples
 
