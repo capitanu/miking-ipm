@@ -44,4 +44,4 @@ let myNfa = NFA(nfa, "102", string2string, char2string,[]) in
 
 let myGraph = Graph(graph,int2string,string2string) in
 let myDigraph = Digraph(digraph, char2string,int2string) in
-  modelPrintDotWithOptions myDigraph "LR" [('A', "fillcolor=red"), ('F', "shape=triangle")]
+  modelPrintDotSimulateTo myNfa 4 "LR" []

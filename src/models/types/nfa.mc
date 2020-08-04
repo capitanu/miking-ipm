@@ -143,13 +143,13 @@ let nfaConstr = lam s. lam trans. lam alph. lam startS. lam accS. lam eqv. lam e
 -- prints a NFA in dot.
 let nfaPrintDot = lam nfa. lam v2str. lam l2str. lam direction. lam vSettings. lam input. lam steps.
     let eqv = nfaGetEqv nfa in
-
-    let path = (if (lti (negi 1) steps) then slice (nfaMakeEdgeInputPath nfa.startState input nfa) 0 steps
+    let path = (if (lti (negi 0) steps) then slice (nfaMakeEdgeInputPath nfa.startState input nfa) 0 steps
         else []) in
     let currentState = if (eqi steps 0) then nfa.startState
         else if (lti steps 0) then None()
         else (last path).1 in 
-    let finalEdge = if (lti steps 0) then None() else last path in
+    let finalEdge = if (lti steps 1) then None() 
+        else last path in
     let dotVertices = join [[initDotVertex "start" "style=invis"],
         map (lam v. 
             let dbl = if (any (lam x. eqv x v) nfa.acceptStates) then "shape=doublecircle" else "" in
@@ -160,14 +160,13 @@ let nfaPrintDot = lam nfa. lam v2str. lam l2str. lam direction. lam vSettings. l
             let extraSettings = strJoin " " [dbl,active,(match extra with Some e then e.1 else "")] in
             initDotVertex (v2str v) extraSettings)
         (getStates nfa)] in
-    let startEdgeStyle = if (lti (negi 1) steps) then "" else "style=solid" in
+    let startEdgeStyle = if (eqi 0 steps) then "color=darkgreen" else "" in
     let eqEdge = (lam a. lam b. and (eqv a.0 b.0) (eqv a.1 b.1)) in
     let dotEdges = join [[initDotEdge "start" nfa.startState "start" "->" startEdgeStyle],
         map (lam e. 
-            let extra = if (lti (negi 1) steps) then 
-                if (eqEdge (e.0,e.1) finalEdge) then "color=darkgreen style=bold"
-                else if (setMem eqEdge (e.0,e.1) path) then "style=bold"
-                else "color=black style=dashed"
+            let extra = if (lti 0 steps) then 
+                if (eqEdge (e.0,e.1) finalEdge) then "color=darkgreen"
+            else "" 
             else "" in
             initDotEdge (v2str e.0) (v2str e.1) (l2str e.2) "->" extra)
         (getTransitions nfa)] in
