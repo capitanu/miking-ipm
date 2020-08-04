@@ -44,7 +44,7 @@ let getTransitions = lam nfa.
 let nfaCheckLabels = lam graph. lam alph. lam eql.
     all (lam x. (any (lam y. eql x.2 y) alph)) graph
 
--- check that values are accaptable for the NFA
+-- check that values are acceptable for the NFA
 let nfaCheckValues = lam trans. lam s. lam alph. lam eqv. lam eql. lam accS. lam startS.
     if not (nfaCheckLabels trans alph eql) then error "Some labels are not in the defined alphabet" 
         else if not (setIsSubsetEq eqv accS s) then error "Some accepted states do not exist" 
@@ -73,7 +73,8 @@ let nfaAddTransition = lam nfa. lam trans.
         acceptStates = nfa.acceptStates
     }
 
--- returns true if state s is a accapted state in the nfa
+
+-- returns true if state s is an accepted state in the nfa
 let nfaIsAcceptedState = lam s. lam nfa. 
     setMem nfa.graph.eqv s nfa.acceptStates
 
@@ -149,7 +150,7 @@ let nfaPrintDot = lam nfa. lam v2str. lam l2str. lam direction. lam vSettings. l
         else if (lti steps 0) then None()
         else (last path).1 in 
     let finalEdge = if (lti steps 0) then None() else last path in
-    let dotVertices = join [[initDotVertex "start" "fontcolor=white color=white"],
+    let dotVertices = join [[initDotVertex "start" "style=invis"],
         map (lam v. 
             let dbl = if (any (lam x. eqv x v) nfa.acceptStates) then "shape=doublecircle" else "" in
             let active = (if (lti (negi 1) steps) then 

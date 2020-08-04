@@ -45,7 +45,7 @@ class NFA {
         return `digraph {
             rankdir=${this.rankDirection}
             node [${objectToString(this.stateSettings)}]
-            start [fontcolor = white color = white class="start-node"]
+            start [style=invis class="start-node" ]
             ${this.states.map(state =>
                 `${state.name} [id=${state.name} class="${this.name}-node" label="${state.displayName}" ${objectToString(state.settings)}]`
             ).join("\n")}

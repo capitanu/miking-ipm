@@ -84,7 +84,7 @@ let nfaVisual = lam nfa. lam input. lam s2s. lam l2s. lam nfaType. lam displayNa
         "},\n ",
         "\"model\" : {\n ",
             "\"states\" : [\n",
-            (formatStates (getStates nfa) s2s (getEqv nfa) displayNames),
+            (formatStates (getStates nfa) s2s (nfaGetEqv nfa) displayNames),
             "],\n ",
             "\"transitions\" : [\n",
             (formatTransitions (getTransitions nfa) s2s l2s (nfaGetEqv nfa)),
@@ -115,10 +115,15 @@ let graphVisual = lam model. lam displayNames. lam vertex2str. lam edge2str. lam
     formatGraph nodes edges graphType
 
 -- format a tree to JS code for visualizing
-let treeVisual = lam model. lam node2str. lam displayNames.
-    let nodes = formatBTreeStates model node2str "" displayNames in
-    let edges = formatBTreeEdges model node2str "" displayNames in 
-    formatGraph nodes edges "tree"
+-- let treeVisual = lam model. lam node2str. lam displayNames.
+ --   let nodes = formatBTreeStates model node2str "" displayNames in
+  --  let edges = formatBTreeEdges model node2str "" displayNames in 
+   -- formatGraph nodes edges "tree"
+let treeVisual = lam model. lam v2str. lam displayNames.
+    let eqv = model.eqv in
+    let vertices = formatVertices (treeVertices model) v2str eqv displayNames in
+    let edges = foldl concat [] (map (lam e. formatEdge (v2str e.0) (v2str e.1) e.2) (treeEdges model ())) in
+    formatGraph vertices edges "tree"
 
 -- make all models into string object
 let visualize = lam models.

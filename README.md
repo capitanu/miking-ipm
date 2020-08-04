@@ -49,38 +49,35 @@ This environment supports the datatypes of type _model_. Right now this includes
 
 Starting State:
 
-	let startState = X_i
+	let startState = "s0"
 
 States:
 
-	let states = [X_1,X_2,X_3,...]
+	let states = ["s0","s1","s2"]
 
 Labels:
 
-	let alfabeth = [L_1, L_2,..]
+	let alfabeth = ['0','1']
 
 Transitions:
 
-	let transitions = [(X_i,X_j,L_h),...]
+	let transitions = [("s0","s1",'1'),("s1","s1",'1'),("s1","s2",'0')]
 
 Accepted States:
 
-	let acceptStates = [X_i,X_j,...]
+	let acceptStates = ["s1"]
 	
 To visualize the DFA in action, please write your input in the form of an array of labels as follows:
 
-	let input = [L_1,L_1,L_2,L_1,...]
+	let input = "11"
 	
 There are no data type requirements, thus you would need to write equality functions for the states (eqv) and labels (eql) (X and L in the above examples). The equality functions get 2 inputs and returns either **true** or **false** (true if the two states/labels are equal and false otherwise). 
 
 * For example, if your states were integers and your labels were chars, you could do:
 
-		let eqv = lam s1. lam s2.
-			eqi s1 s2
+		let eqv = setEqual eqchar
 		let eql = lam s1. lam s2.
 			eqchar s1 s2
-
-
 
 To construct a DFA use this function:
 
@@ -93,9 +90,9 @@ A NFA works the same as a DFA, just replace "dfa" with "nfa". The transitions la
 
 ## This is how you would write your directed graph:
 
-To start, create a empty digraph. This can be done with:
+To start, create an empty digraph. This can be done with:
 	
-	digraphEmpty eqv eql
+	digraphEmpty eqchar eqi
 
 There are no data type requirements, thus you would need to write equality functions for the vertices (eqv) and labels (eql). The equality functions get 2 inputs and returns either **true** or **false** (true if the two states/labels are equal and false otherwise). 
 
@@ -108,7 +105,9 @@ To add vertexes and edges to the graph use these commands:
 	digraphAddVertex v g
 	digraphAddEdge v1 v2 l g
 
-Where v, v1 and v2 are vertices, l is a label for an edge and g is the previous digraph. 
+Where v, v1 and v2 are vertices, l is a label for an edge and g is the previous digraph. If you for example want the nodes 'A' and 'B' with a transition with from 'A' to 'B' with label 0, you would write:
+
+	digraphAddEdge 'A' 'B' 0 (digraphAddVertex 'B' (digraphAddVertex 'A' empty))
 
 ## This is how you would write your graph:
 A graph works the same was as the digraph, just replace `digraph` with `graph` in the functions.
@@ -116,7 +115,9 @@ A graph works the same was as the digraph, just replace `digraph` with `graph` i
 ## This is how you would write your binary tree:
 To create a binary tree the constructor BTree can be used.
 
-	BTree (Node(value, Nil()/Node()/Leaf(),Nil()/Node()/Leaf())) 
+	BTree (Node(2, Node(3, Nil (), Leaf 4), Leaf 5)) 
+	
+Here, the main wrapper object would be a BTree to start with. The following can have 3 types: Node, Leaf or Nil. The BTree wraps a Node that has 3 sub-objects, starting with a value and 2 other objects, arbitrary picked from the same 3 above mentioned, in this example, one is another Node and the other is a Leaf.
 
 ## Visualizing the data
 To visualize any of the types defined above they need to be of type model. **toString**  functions are also required. These **toString** functions returns a string that represents the type you are modelling. For example, if you had a graph with vertices of type integer and labels of type character, the toString methods would be:
@@ -126,39 +127,37 @@ To visualize any of the types defined above they need to be of type model. **toS
 		let label2string = lam s.
 			char2string s
 
+There is also the option to define a display name for any of the nodes when visualizing any of the datatypes defined above. These values must be strings, and have no affect on the model other than that when visualized the labels for the states will not be the names used in the model, but the display names. All names used in the model must be unique, but display names do not. The display names are defined by a list of tuples `(a,b)`, where `a` is the name of the node that is used in the model and `b` is the string that will be shown as the label instead. 
+
+** Note: this does not work with file conversion at the moment. 
+
 The model constructors for the types are:
 
 * DFA 
 
-  `DFA(dfa,input, state2string, label2string,[])`
+  `DFA(dfa,input, state2string, label2string,displayNames)`
+  
 * NFA 
 
-  `NFA(nfa,input, state2string, label2string,[])`
+  `NFA(nfa,input, state2string, label2string,displayNames)`
+  
 * Digraph : 
     
-	`Digraph(digraph, vertex2string,label2string,[]),`
+	`Digraph(digraph, vertex2string,label2string,displayNames),`
+	
 * Graph 
 
-  `Graph(graph, vertex2string,label2string,[])`
+  `Graph(graph, vertex2string,label2string,displayNames)`
 
+* BTree
 
-* BTree   
-
-  `BTree (btree,node2string,[])`
+  `BTree (btree,node2string,displayNames)`
 
 To create the visualizer, use this function:
 
 	visualize data
 
 Where `data` is a list of models.
-
-There is also the option to define a display name for any of the nodes when visualizing any of the datatypes defined above. These values must be strings, and have no affect on the model other than that when visualized the labels for the states will not be the names used in the model, but the display names. All names used in the model must be unique, but display names do not. The display names are defined by a list of touples `(a,b)`, where `a` is the name of the node that is used in the model and `b` is the string that will be shown as the label instead. To use the display names, the list will be added to the model constructor as a argument. For example, if you want to have display names for a DFA, the constructor would be:
-
-  `DFA(dfa, input, state2string, label2string, displayNames)`
-
-Where displayNames is a list of touples containing the nodes that should have different display names and their new labels.
-
-**Note: this does not work with file conversion at the moment. 
 
 # Creating files with the datatypes
 Before you can start converting your models to pdf and other formats, you need to
@@ -253,7 +252,7 @@ This program creates both a NFA and a Binary tree and displays them.
 	mexpr 
 	let string2string = (lam x. x) in
   	let char2string = (lam x. [x]) in
-	let stringEq = setEqual eqchar in
+	let eqString = setEqual eqchar in
 	
 	let nfaAlphabet = ['0','1','2','3'] in
 	let nfaStates = ["a","b","c","d","e","f"] in
@@ -262,7 +261,7 @@ This program creates both a NFA and a Binary tree and displays them.
 	let nfaAcceptStates = ["a"] in
 	
 	-- create your NFA
-	let nfa = nfaConstr nfaStates nfaTransitions nfaAlphabet nfaStartState nfaAcceptStates stringEq eqchar in
+	let nfa = nfaConstr nfaStates nfaTransitions nfaAlphabet nfaStartState nfaAcceptStates eqString eqchar in
 
 
 	-- create your Binary Tree
@@ -293,7 +292,7 @@ The following code creates a directed graph and prints it as dot code. To do the
 
 The following command runs the code, which is located in the file "test.mc", and creates a pdf file called "myDigraph.pdf" from the output:
 
-	mi test.mc | dot  -Tpdf -o myDigraph.pdf
+	mi test.mc | dot  -Tpdf -o graph.pdf
 
 ## MIT License
 
