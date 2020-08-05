@@ -9,24 +9,28 @@ let getDisplayName = lam name. lam displayNames. lam v2s.
                 if setEqual eqchar (v2s a) name then true
                 else false
             else false
-        ) displayNames) in
+	    ) displayNames) in
     match vertex_display with Some (a,b) then b else name
 
 -- format vertex
 let formatVertex = lam name. lam displayName. 
-    foldl concat [] ["{\"name\":\"", name, "\", \"displayName\": \"",displayName,"\" },\n"]
+    foldl concat [] ["{\"name\":\"", name, "\", \"displayName\": \"",displayName,"\" }\n"]
 
 -- format edge
 let formatEdge = lam from. lam to. lam label.
-    foldl concat [] ["{\"from\": \"", from, "\", \"to\": \"" , to, "\", \"label\": \"" , label , "\"},\n"]
+    foldl concat [] ["{\"from\": \"", from, "\", \"to\": \"" , to, "\", \"label\": \"" , label , "\"}\n"]
 
 -- format vertices
 let formatVertices = lam vertices.  lam vertex2str. lam eqv. lam displayNames.
-    foldl (lam output. lam vertex.
+    concat
+       (let vertex_string = (vertex2str (head vertices)) in
+        let vertex_display = getDisplayName vertex_string displayNames vertex2str in
+       foldl concat [] ["{\"name\":\"", vertex_string, "\", \"displayName\": \"",vertex_display,"\" }\n"])
+       (foldl (lam output. lam vertex.
         let vertex_string = (vertex2str vertex) in
         let vertex_display = getDisplayName vertex_string displayNames vertex2str in
-       concat output (formatVertex vertex_string vertex_display)
-    ) "" vertices
+       strJoin "" [output, ",", (formatVertex vertex_string vertex_display)]
+    ) "" (tail vertices))
  
 -- format edges and squash edges between the same nodes.
 recursive
@@ -34,7 +38,7 @@ let formatAndSquashEdges = lam trans. lam v2s. lam eqv.
     if (eqi (length trans) 0) then "" 
     else
     let first = head trans in
-    let formatedEdge = formatEdge (v2s (first.0)) (v2s (first.1)) (first.2) in
+    let formatedEdge = concat "," (formatEdge (v2s (first.0)) (v2s (first.1)) (first.2)) in
     if(eqi (length trans) 1) then formatedEdge
     else
         let second = head (tail trans) in
@@ -43,10 +47,15 @@ let formatAndSquashEdges = lam trans. lam v2s. lam eqv.
         else join [formatedEdge, formatAndSquashEdges (tail trans) v2s eqv]
 end
 
+-- only for head
+let formatEdgeHead = lam from. lam to. lam label.
+    strJoin "" ["{\"from\": \"", from, "\", \"to\": \"" , to, "\", \"label\": \"" , label , "\"}\n"]
+
 -- format all edges into printable string
 let formatEdges = lam edges. lam v2s. lam l2s. lam eqv.
-    let edges_string = map (lam x. (x.0,x.1,l2s x.2)) edges in
-    formatAndSquashEdges edges_string v2s eqv
+    let edges_string = map (lam x. (x.0,x.1,l2s x.2)) (tail edges) in
+    concat (formatEdgeHead (v2s (head edges).0) (v2s (head edges).1) (l2s (head edges).2)) (formatAndSquashEdges edges_string v2s eqv)
+    
 -- Formatting the states
 let formatStates = lam states. lam state2str. lam eqv. lam displayNames.
     formatVertices states state2str eqv displayNames
@@ -55,32 +64,44 @@ let formatStates = lam states. lam state2str. lam eqv. lam displayNames.
 let formatTransitions = lam trans. lam v2s. lam l2s. lam eqv.
     formatEdges trans v2s l2s eqv
     
--- getting the input path formated
+-- Getting the input path formated
 let formatInputPath = lam path. lam state2string.
-    foldl (lam output. lam elem.
-        foldl concat [] [output,
+    concat ((foldl (lam output. lam elem.
+            foldl concat [] [output,
             "{\"state\": \"",state2string elem.state,
             "\",\"status\": \"", elem.status, "\"",
-            ",\"index\": ",int2string elem.index,"},\n"
-        ]
-    ) "" path
+            ",\"index\": ",int2string elem.index,"}\n"
+    	    ]
+	    ) "" [(head path)]))
+	    (foldl (lam output. lam elem.
+	    foldl concat [] [output,
+            ",{\"state\": \"",state2string elem.state,
+            "\",\"status\": \"", elem.status, "\"",
+            ",\"index\": ",int2string elem.index,"}\n"
+	    ]
+	    ) "" (tail path))
 
 -- format input-line
 let formatInput = lam input. lam label2str.
-    foldl (lam output. lam elem.
-        foldl concat [] [output,"\"" ,label2str elem, "\","]
-    ) "" input
+    concat (strJoin "" ["\"", (label2str (head input)), "\""])
+    (foldl (lam output. lam elem.
+        foldl concat [] [output,",\"" ,label2str elem, "\""]
+    ) "" (tail input))
+
 
 -- (any (lam x. or (eqchar x '{') (eqchar x '[')) first)
 -- format NFA to JS code for visualizing
-let nfaVisual = lam nfa. lam input. lam s2s. lam l2s. lam nfaType. lam displayNames.
+let nfaVisual = lam nfa. lam input. lam s2s. lam l2s. lam nfaType. lam displayNames. lam id.
     foldl concat [] ["{\n ",
         "\"type\" : \"", nfaType,"\",\n ",
+	"\"id\" : ",
+	int2string id,
+	",\n",
         "\"simulation\" : {\n",
             " \"input\" : [", (formatInput input l2s),"],\n",
             " \"configurations\" : [\n", 
             (formatInputPath (nfaMakeInputPath (negi 1) nfa.startState input nfa) s2s),
-            "],\n",
+            "]\n",
         "},\n ",
         "\"model\" : {\n ",
             "\"states\" : [\n",
@@ -90,58 +111,75 @@ let nfaVisual = lam nfa. lam input. lam s2s. lam l2s. lam nfaType. lam displayNa
             (formatTransitions (getTransitions nfa) s2s l2s (nfaGetEqv nfa)),
             "], \n ",
             "\"startState\" : \"", (s2s nfa.startState),"\",\n ",
-            "\"acceptedStates\" : [", foldl concat [] (map (lam s. foldl concat [] ["\"", (s2s s), "\","]) nfa.acceptStates),"],\n",
+            "\"acceptedStates\" : [",
+	    (strJoin "" ["\"", (s2s (head nfa.acceptStates)), "\""]),
+	    foldl concat [] (map (lam s. foldl concat [] [",\"", (s2s s), "\""]) (tail nfa.acceptStates)),"]\n",
         "}\n",
     "}"
 ]
 
-let dfaVisual = nfaVisual 
+let dfaVisual = nfaVisual
 
--- format a graph to JS code
-let formatGraph = lam nodes. lam edges. lam graphType.
-    foldl concat [] ["{\n \"type\" : \"",
+let formatGraph = lam nodes. lam edges. lam graphType. lam id.
+    foldl concat [] ["{\n\"type\" : \"",
 	graphType,
-	"\",\n \"model\" : {\n \"nodes\" : [\n",
+	"\",\n \"id\" : ",
+	int2string id,
+	",\n",
+	" \"model\" : {\n \"nodes\" : [\n",
 	nodes ,
 	"],\n \"edges\" : [\n",
 	edges,
-	"], \n },\n}"
+	"] \n }\n}"
 	]
 
+
 -- format a graph to JS code for visualizing
-let graphVisual = lam model. lam displayNames. lam vertex2str. lam edge2str. lam graphType.
+let graphVisual = lam model. lam displayNames. lam vertex2str. lam edge2str. lam graphType. lam id.
     let nodes = formatVertices (graphVertices model) vertex2str model.eqv displayNames in
     let edges = formatEdges (graphEdges model) vertex2str edge2str model.eqv in
-    formatGraph nodes edges graphType
+    formatGraph nodes edges graphType id
+
+
 
 -- format a tree to JS code for visualizing
 -- let treeVisual = lam model. lam node2str. lam displayNames.
  --   let nodes = formatBTreeStates model node2str "" displayNames in
   --  let edges = formatBTreeEdges model node2str "" displayNames in 
    -- formatGraph nodes edges "tree"
-let treeVisual = lam model. lam v2str. lam displayNames.
+let treeVisual = lam model. lam v2str. lam displayNames. lam id.
     let eqv = model.eqv in
     let vertices = formatVertices (treeVertices model) v2str eqv displayNames in
-    let edges = foldl concat [] (map (lam e. formatEdge (v2str e.0) (v2str e.1) e.2) (treeEdges model ())) in
-    formatGraph vertices edges "tree"
+    let edges_list = (treeEdges model ()) in
+    let h_edges = head edges_list in
+    let edges = formatEdge (v2str h_edges.0) (v2str h_edges.1) h_edges.2 in
+    let edges = concat (edges) (foldl concat [] (map (lam e. concat "," (formatEdge (v2str e.0) (v2str e.1) e.2)) (tail edges_list))) in
+    formatGraph vertices edges "tree" id
+
 
 -- make all models into string object
 let visualize = lam models.
+    let ids = mapi (lam i. lam x. i) models in	
+    let models = zipWith (lam x. lam y. (x,y)) models ids in
     let models = strJoin ",\n" (
-        map (lam model. 
+        map (lam model_tup.
+	    let model = model_tup.0 in
+	    let id = model_tup.1 in
             match model with Digraph(model,vertex2str,edge2str,displayNames) then
-                graphVisual model displayNames vertex2str edge2str "digraph"
+                graphVisual model displayNames vertex2str edge2str "digraph" id
             else match model with DFA(model,input,state2str,label2str,displayNames) then
-                dfaVisual model input state2str label2str "dfa" displayNames
+                dfaVisual model input state2str label2str "dfa" displayNames id
             else match model with Graph(model,vertex2str,edge2str,displayNames) then
-                graphVisual model displayNames vertex2str edge2str "graph"
+                graphVisual model displayNames vertex2str edge2str "graph" id
             else match model with NFA(model,input,state2str,label2str,displayNames) then
-                nfaVisual model input state2str label2str "nfa" displayNames
+                nfaVisual model input state2str label2str "nfa" displayNames id
             else match model with BTree(model, node2str,displayName) then
-                treeVisual model node2str displayName
+                treeVisual model node2str displayName id
             else error "unknown type") models) in
-    print (foldl concat [] ["let data = {\"models\": [\n", models, "]\n}\n"])
-                        
+	    print (foldl concat [] ["{\"models\": [\n", models, "]\n}\n"])
+
+
+
 mexpr
 let alfabeth = ['0','1','2'] in
 let states = [1,2,3] in

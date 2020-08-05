@@ -23,6 +23,9 @@ let acceptStates = ["s3"] in
 -- create your BTree
 let btree = btreeConstr (Node(2, Node(3, Nil (), Leaf 4), Leaf 5)) eqi in
 
+let dfa = dfaConstr states transitions alfabeth startState acceptStates eqString eqchar in
+
+
 -- create your directed graph
 let digraph = foldr (lam e. lam g. digraphAddEdge e.0 e.1 e.2 g) 
 (foldr digraphAddVertex (digraphEmpty eqchar eqi) ['A','B','C','D','E']) 
@@ -37,11 +40,11 @@ let nfaAlphabet = ['0','1','2','3'] in
 	let nfaTransitions = [("a","b",'1'),("b","c",'0'),("c","d",'2'),("c","e",'2'),("d","a",'1'),("e","f",'1')] in
 	let nfaStartState = "a" in
 	let nfaAcceptStates = ["a"] in
-	
 	-- create your NFA
 	let nfa = nfaConstr nfaStates nfaTransitions nfaAlphabet nfaStartState nfaAcceptStates eqString eqchar in
 
 	-- create your Binary Tree
+
 	let treeModel = Node(2, Node(3, Nil (), Leaf 4), Leaf 5) in
 visualize [
 	Digraph(digraph, char2string,int2string,[]),
@@ -50,3 +53,4 @@ visualize [
 	NFA(nfa, "1021", string2string, char2string,[]),
 	NFA(nfa, "102", string2string, char2string,[])
 ]
+

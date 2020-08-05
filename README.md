@@ -24,14 +24,15 @@ undirected graphs, and electrical circuits.
 # Getting Started
 
 Before you can start visualizing your models inside a web browser, you need to
-install the following Node package using NPM (Node Package Manager): browser-sync.
-Install it in the root directory of the project.
+install the following OCaml packages using **opam**: cohttp-lwt-unix, fswatch_lwt fswatch and str.
+You can use this command to install them all:
 
-	npm install browser-sync
+	opam install cohttp-lwt-unix fswatch_lwt fswatch
 
-The boot.js located in src/visual/webpage/ can be used to watch your file. You can start by using this command and sourcing your **.mc** file:
-
-	node path/to/boot.js path/to/your_file.mc
+You can start the server for watching your file using this command and sourcing your **.mc** file (this would be if your file is in the root directory of the project):
+	
+	cd src/ocaml-server/
+	dune exec ./main.exe path/to/source.mc
 
 This will prompt you to the port on your localhost on which the server is started, now if you modify and save the file which contains your models, it should generate a file called **data-source.js** and reflect the update in the browser immediately. The generated file will appear in the src/visual/webpage directory.
 
@@ -286,6 +287,7 @@ This program displays a digraph and a graph on the same page.
 	let digraph = foldr (lam e. lam g. digraphAddEdge e.0 e.1 e.2 g) 
 	(foldr digraphAddVertex (digraphEmpty eqchar eqi) ['A','B','C','D','E']) 
                 [('A','B',2),('A','C',5),('B','C',2),('B','D',4),('C','D',5),('C','E',5),('E','D',2)] in
+
 
 	-- create your graph
 	let graph = foldr (lam e. lam g. graphAddEdge e.0 e.1 e.2 g) 

@@ -27,7 +27,7 @@ let digraph = foldr (lam e. lam g. digraphAddEdge e.0 e.1 e.2 g)
                 (foldr digraphAddVertex (digraphEmpty eqchar eqi) ['A','B','C','D','E','F']) 
                 [('A','B',2),('A','C',5),('B','C',2),('B','D',4),('C','D',5),('C','E',5)] in
 let graph = foldr (lam e. lam g. graphAddEdge e.0 e.1 e.2 g) 
-              (foldr graphAddVertex (graphEmpty eqi eqString) [1,2,3,4]) 
+              (foldr graphAddVertex (graphEmpty eqi eqString) [1,2,3,4])
               [(1,2,"g"),(3,2,"a"),(1,3,""),(3,4,"")] in
 
 let treeModel = Node(2, Node(3, Nil (), Leaf 4), Leaf 5) in
@@ -41,6 +41,7 @@ let nfaStartState = "a" in
 let nfaAcceptStates = ["a"] in
 let nfa = nfaConstr nfaStates nfaTransitions nfaAlphabet nfaStartState nfaAcceptStates (setEqual eqchar) eqchar in
 let myNfa = NFA(nfa, "102", string2string, char2string,[]) in
+
 
 let myGraph = Graph(graph,int2string,string2string) in
 let myDigraph = Digraph(digraph, char2string,int2string) in

@@ -5,7 +5,6 @@ type BTreeModel
     con Node  : (a,BTree,BTree) -> BTree 
     con Leaf  : (a) -> BTree
     con Nil   : () -> BTree
-
 type BTree = {
     tree: BTreeModel,
     eqv: a -> a -> Bool
