@@ -27,12 +27,20 @@ Before you can start visualizing your models inside a web browser, you need to
 install Dune and the following OCaml packages using **opam**: cohttp-lwt-unix, fswatch_lwt and fswatch.
 You can use this command to install the OCaml packages:
 
+<<<<<<< HEAD
 	opam install dune cohttp-lwt-unix fswatch_lwt fswatch websocket-lwt-unix
+=======
+	opam install cohttp-lwt-unix fswatch_lwt fswatch
+>>>>>>> OCaml server (#11)
 
 ** Note: mac users might need to install fswatch with homebrew first:
 
 	brew install fswatch
 
+<<<<<<< HEAD
+=======
+To install dune, follow the instructions on <a href="https://dune-project.org/">dune-project.org</a>.
+>>>>>>> OCaml server (#11)
 
 If you are using an old opam version, use the following commands to update it:
 
@@ -361,6 +369,7 @@ The following code creates a directed graph and prints it as dot code. To do the
 The following command runs the code, which is located in the file "test.mc", and creates a pdf file called "myDigraph.pdf" from the output:
 
 	mi test.mc | dot  -Tpdf -o graph.pdf
+
 
 
 ## MIT License

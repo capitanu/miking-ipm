@@ -12,6 +12,10 @@ let eqString = setEqual eqchar in
 let char2string = (lam b. [b]) in
 
 -- Defining the components of a DFA
+<<<<<<< HEAD
+=======
+let alfabeth = ['0','1'] in
+>>>>>>> OCaml server (#11)
 let states = ["s0","s1","s2","s3"] in
 let transitions = [
     ("s0","s1",'1'),
@@ -25,7 +29,11 @@ let startState = "s0" in
 let acceptStates = ["s3"] in
 
 -- constructing the DFA
+<<<<<<< HEAD
 let dfa = dfaConstr states transitions startState acceptStates eqString eqchar in
+=======
+let dfa = dfaConstr states transitions alfabeth startState acceptStates eqString eqchar in
+>>>>>>> OCaml server (#11)
 
 
 -- The input for simulation is given here as the second argument

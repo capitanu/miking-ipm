@@ -12,13 +12,21 @@ let eqString = setEqual eqchar in
 let char2string = (lam b. [b]) in
 
 -- Defining the components of a NFA
+<<<<<<< HEAD
+=======
+let nfaAlphabet = ['0','1','2','3'] in
+>>>>>>> OCaml server (#11)
 let nfaStates = ["a","b","c","d","e","f"] in
 let nfaTransitions = [("a","b",'1'),("b","c",'0'),("c","d",'2'),("c","e",'2'),("d","a",'1'),("e","f",'1')] in
 let nfaStartState = "a" in
 let nfaAcceptStates = ["a"] in
 
 -- constructing the NFA
+<<<<<<< HEAD
 let nfa = nfaConstr nfaStates nfaTransitions nfaStartState nfaAcceptStates eqString eqchar in
+=======
+let nfa = nfaConstr nfaStates nfaTransitions nfaAlphabet nfaStartState nfaAcceptStates eqString eqchar in
+>>>>>>> OCaml server (#11)
 
 -- The input for simulation is given here as the second argument
 -- in the constructor.
