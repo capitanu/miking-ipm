@@ -10,3 +10,4 @@ src/webpage/js/data-source.json
 src/ocaml-server/.merlin
 _build/*
 build/*
+>>>>>>> OCaml server (#11)
