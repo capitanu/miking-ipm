@@ -1,12 +1,22 @@
 .\#*
 \#*\#
 *~
+<<<<<<< HEAD
+=======
+.DS_Store
+src/visual/webpage/js/data-source.js
+src/visual/webpage/js/temp.js
+>>>>>>> OCaml server (#11)
 .DS_Store
 node_modules/*
 src/model/dfaModel.mc
 package-lock.json
 src/ocaml-server/_build/*
+<<<<<<< HEAD
 src/webpage/js/data-source.json
 src/ocaml-server/.merlin
 _build/*
 build/*
+=======
+src/webpage/js/data-source.json
+>>>>>>> OCaml server (#11)
