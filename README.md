@@ -27,20 +27,11 @@ Before you can start visualizing your models inside a web browser, you need to
 install Dune and the following OCaml packages using **opam**: cohttp-lwt-unix, fswatch_lwt and fswatch.
 You can use this command to install the OCaml packages:
 
-<<<<<<< HEAD
 	opam install dune cohttp-lwt-unix fswatch_lwt fswatch websocket-lwt-unix
-=======
-	opam install cohttp-lwt-unix fswatch_lwt fswatch
->>>>>>> OCaml server (#11)
 
 ** Note: mac users might need to install fswatch with homebrew first:
 
 	brew install fswatch
-
-<<<<<<< HEAD
-=======
-To install dune, follow the instructions on <a href="https://dune-project.org/">dune-project.org</a>.
->>>>>>> OCaml server (#11)
 
 If you are using an old opam version, use the following commands to update it:
 
@@ -303,19 +294,19 @@ There is a **examples** folder in the root of the project which contains some fi
 This program displays a digraph and a graph on the same page.
 
 	mexpr
-	let string2string = (lam b. b) in
-	let eqString = setEqual eqchar in
-	let char2string = (lam b. [b]) in
+		let string2string = (lam b. b) in
+		let eqString = setEqual eqchar in
+		let char2string = (lam b. [b]) in
 
-	-- create your directed graph
-	let digraph = foldr (lam e. lam g. digraphAddEdge e.0 e.1 e.2 g) 
-	(foldr digraphAddVertex (digraphEmpty eqchar eqi) ['A','B','C','D','E']) 
-                [('A','B',2),('A','C',5),('B','C',2),('B','D',4),('C','D',5),('C','E',5),('E','D',2)] in
+		-- create your directed graph
+		let digraph = foldr (lam e. lam g. digraphAddEdge e.0 e.1 e.2 g) 
+		(foldr digraphAddVertex (digraphEmpty eqchar eqi) ['A','B','C','D','E']) 
+					[('A','B',2),('A','C',5),('B','C',2),('B','D',4),('C','D',5),('C','E',5),('E','D',2)] in
 
 
-	-- create your graph
-	let graph = foldr (lam e. lam g. graphAddEdge e.0 e.1 e.2 g) 
-	(foldr graphAddVertex (graphEmpty eqi eqString) [1,2,3,4]) [(1,2,""),(3,2,""),(1,3,""),(3,4,"")] in
+		-- create your graph
+		let graph = foldr (lam e. lam g. graphAddEdge e.0 e.1 e.2 g) 
+		(foldr graphAddVertex (graphEmpty eqi eqString) [1,2,3,4]) [(1,2,""),(3,2,""),(1,3,""),(3,4,"")] in
 
 	visualize [
 		Digraph(digraph, char2string,int2string,[]),
@@ -370,7 +361,9 @@ The following command runs the code, which is located in the file "test.mc", and
 
 	mi test.mc | dot  -Tpdf -o graph.pdf
 
+The following command runs the code, which is located in the file "test.mc", and creates a pdf file called "myDigraph.pdf" from the output:
 
+	mi test.mc | dot  -Tpdf -o graph.pdf
 
 ## MIT License
 

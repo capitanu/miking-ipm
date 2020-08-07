@@ -13,9 +13,12 @@ let char2string = (lam b. [b]) in
 
 -- Defining the components of a DFA
 <<<<<<< HEAD
+<<<<<<< HEAD
 =======
 let alfabeth = ['0','1'] in
 >>>>>>> OCaml server (#11)
+=======
+>>>>>>> Error if port is in use and user configurable port (#12)
 let states = ["s0","s1","s2","s3"] in
 let transitions = [
     ("s0","s1",'1'),
@@ -30,10 +33,14 @@ let acceptStates = ["s3"] in
 
 -- constructing the DFA
 <<<<<<< HEAD
+<<<<<<< HEAD
 let dfa = dfaConstr states transitions startState acceptStates eqString eqchar in
 =======
 let dfa = dfaConstr states transitions alfabeth startState acceptStates eqString eqchar in
 >>>>>>> OCaml server (#11)
+=======
+let dfa = dfaConstr states transitions startState acceptStates eqString eqchar in
+>>>>>>> Error if port is in use and user configurable port (#12)
 
 
 -- The input for simulation is given here as the second argument
