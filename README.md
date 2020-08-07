@@ -27,27 +27,16 @@ Before you can start visualizing your models inside a web browser, you need to
 install Dune and the following OCaml packages using **opam**: cohttp-lwt-unix, fswatch_lwt and fswatch.
 You can use this command to install the OCaml packages:
 
-<<<<<<< HEAD
 	opam install dune cohttp-lwt-unix fswatch_lwt fswatch websocket-lwt-unix
 
 ** Note: mac users might need to install fswatch with homebrew first:
 
 	brew install fswatch
-=======
-	opam install cohttp-lwt-unix fswatch_lwt fswatch
-
-** Note: mac users might need to install fswatch with homebrew first:
-
-	brew install fswatch
-
-To install dune, follow the instructions on <a href="https://dune-project.org/">dune-project.org</a>.
->>>>>>> OCaml server (#11)
 
 If you are using an old opam version, use the following commands to update it:
 
 	opam update
 	opam upgrade
-<<<<<<< HEAD
 
 You need to source the path to the IPM root folder as an environment variable:
 
@@ -184,135 +173,10 @@ The constructor for the binary tree takes two arguments:
 
     Ex:
 
-=======
-
-
-# Models
-
-## Data types
-This environment supports the datatypes of type _model_. The model type extends the functions already available in the datatypes to be able to visualize them.
-
-This includes:
-* Deterministic finite automaton (DFA)
-
-    `DFA (Data, input, node2str, label2str, displayNames)`
-
-* Nondeterministic finite automaton (NFA)
-
-    `NFA (Data, input, node2str, label2str, displayNames)`
-* Directed graph (Digraph)
-
-    `Digraph (Data, node2str, label2str,    displayNames)`
-    
-* Graph
-
-    `Graph (Data,  node2str, label2str,       displayNames)`
-    
-* Binary tree (BTree)
-
-    `BTree (Data,node2str,                   displayNames)`
-
-The arguments for the constructors are:
-
-1. **Data**: data of type (DFA/NFA/Digraph/Graph).
-
-2. **input:** a input list containing input.
-
-3. **displayNames:** There is a option to define a display name for any of the nodes when visualizing any of the datatypes. These values must be strings, and have no affect on the model other than that when visualized the labels for the nodes/states will not be the names used in the model, but the display names. All names used in the model must be unique, but display names do not. The display names are defined by a list of tuples `(a,b)`, where `a` is the name of the node that is used in the model and `b` is the string that will be shown as the label instead.
-
-4. **node2str** and 5. **label2str:**  **toString** functions that return a string that represents the type you are modelling. 
-
-See the datatypes below for examples.
-## DFA
-
-The constructor for the DFA takes in seven arguments: 
-1. **states:** a list containing the names of of your states. Ex:
-
-	`let states = ["s0","s1","s2"]`
-
-2. **transitions:** a list containing the transitions between states. One transition is represented as a tuple with the structure `(from,to,label)`. Ex:
-
-	`let transitions = [("s0","s1",'1'),("s1","s1",'1'),("s1","s2",'0')]`
-
-3. **alphabet:** the language that is recognized by the DFA. Ex:
-
-    `let alphabet = ['0','1']`
-
-4. **start state:** the state that the automaton starts on. Ex:
-
-    `let startState = "s0"`
-
- 5. **accepted states:** a list containing the automatons accepted states. Ex:
-
-    `let acceptStates = ["s1"]`
-
-  6. **eqv** and 7. **eql** There are no data type requirements, thus you would need to write equality functions for the states (eqv) and the labels (eql). The equality functions take two inputs and returns either **true** if they are equal or **false** if they are not. Ex :
-  
-    `let eqString = setEqual eqchar in`
-
-    `let eqv = eqString`
-
-	`let eql = eqchar`
-
-The construct function is then called by:
-
-    dfaConstr states transitions
-    alfabeth startState acceptStates eqv eql
-
-To get a `model` containing this DFA, use the model constructor. Ex:
-
-    DFA (my_dfa, "01010", string2string, char2string, [("s0","start")])
-
-## NFA
-A NFA works the same as a DFA, except for the requirement for all transitions from a state to have unique labels. Just replace "dfa" with "nfa" in the above instructions.
-
-## Digraph
-A directed graph contains three different variables:
-1. An adjacency map, which maps each vertex to a list of outgoing edges from that vertex. To add nodes or edges to this, two functions can be used:
-
-    `digraphAddVertex v g`
-
-    `digraphAddEdge v1 v2 l g`
-
-    Where v, v1 and v2 are vertices, l is a label for an edge and g is the previous digraph. If you for example want the nodes 'A' and 'B' with a transition with from 'A' to 'B' with label 0, you would write:
-
-	  `digraphAddEdge 'A' 'B' 0 (digraphAddVertex 'B' (digraphAddVertex 'A' g))`
-
-2. **eqv** and 3. **eql:** There are no data type requirements, thus you would need to write equality functions for the nodes (eqv) and the labels (eql). The equality functions take two inputs and returns either **true** if they are equal or **false** if they are not. Ex:
-
-    `let eqv = eqchar`
-
-    `let eql = eqi`
-
-To start, create an empty digraph. This can be done with:
-	
-    let g = digraphEmpty eqv eql
-
-To get a `model` containing this digraph, use the model constructor. Ex:
-
-    Digraph(g, char2string,int2string,[])
-## Graph
-A graph works the same was as the digraph, except that the edges are not directed. Just replace `digraph` with `graph` in the above example.
-
-## BTree
-The constructor for the binary tree takes two arguments:
-
-1. **tree**: A binary tree. The tree is constructed of three types:
-
-    `Node  : (a,BTree,BTree)`
-
-    `Leaf  : (a)`
-	
-    `Nil   : ()`
-
-    Ex:
-
->>>>>>> OCaml server (#11)
     `let tree = Node(2, Node(3, Nil (), Leaf 4), Leaf 5)`
 2. **eqv**: There is no data type requirements, thus you would need to write an equality function for the nodes. The equality function take two inputs and returns either **true** if they are equal or **false** if they are not.Ex:
 
     `let eqv = eqi`
-<<<<<<< HEAD
 
 The constructor is then called by:
 
@@ -339,34 +203,6 @@ Once you have data that you want to visualize, just call the function `visualize
 
 Functions for writing the datatypes in dot are provided. The graphviz package then provides different ways to use this dot code such as generating pictures with the datatypes (pdf/jpg etc.) or generating latex code. 
 
-=======
-
-The constructor is then called by:
-
-	let tree = btreeConstr tree eqv
-
-To get a `model` containing this digraph, use the model constructor. Ex:
-
-    BTree(tree, int2string,[(2,"root")])
-
-# Usage
-The IPM framework can be used to visualize any data of type _model_. Make sure you source `modelVisualizer.mc` in your file:
-
-    include "path/to/modelVisualizer.mc"
-
-Once you have data that you want to visualize, just call the function `visualize` with a list containing your data. Make sure that the data is of type `model` as the `toString` functions are required. Ex:
-
-    visualize [
-      your_dfa,
-      you_btree,
-      your_graph
-    ]
-
-# Graphviz
-
-Functions for writing the datatypes in dot are provided. The graphviz package then provides different ways to use this dot code such as generating pictures with the datatypes (pdf/jpg etc.) or generating latex code. 
-
->>>>>>> OCaml server (#11)
 ## Installation 
 Before you can start, you need to install the graphviz package. Follow the instructions on <a href="https://graphviz.org/download/">graphviz.org</a>.
 
@@ -375,7 +211,6 @@ Make sure that you include the model.mc file.
 
 	include "path/to/model.mc"
 
-<<<<<<< HEAD
 To print the dot code for some data of type `model`, use one of these commands:
 
 - 	`print (modelGetDot "YOUR-DATA" "RENDER-DIRECTION)"`
@@ -387,19 +222,6 @@ To print the dot code for some data of type `model`, use one of these commands:
 	Which allows you to enter settings for the nodes. _["OPTIONS"]`_ is a seqence of two element tuples, the first element refers to the name of the vertex, the second should be a string with space separated custom graphviz settings. The different settings could be found in the documentation at <a href="https://graphviz.org/documentation/">graphviz.org</a>.
 
 - `print (modelGetDotSimulateTo "YOUR-DATA" "STEPS" "RENDER-DIRECTION" ["OPTIONS"])`
-=======
-To write the dot code for some data of type `model`, use one of these commands:
-
-- 	`modelPrintDot "YOUR-DATA" "RENDER-DIRECTION"`
-
-	Where _"YOUR-DATA"_ data of type `model` as defined above, and "RENDER-DIRECTION" takes one of the following values: "TB", "RL", "BT", "LR". 
-
--	`modelPrintDotWithOptions "YOUR-DATA" "RENDER-DIRECTION" ["OPTIONS"]`
-
-	Which allows you to enter settings for the nodes. _["OPTIONS"]`_ is a seqence of two element tuples, the first element refers to the name of the vertex, the second should be a string with space separated custom graphviz settings. The different settings could be found in the documentation at <a href="https://graphviz.org/documentation/">graphviz.org</a>.
-
-- `modelPrintDotSimulateTo "YOUR-DATA" "STEPS" "RENDER-DIRECTION" ["OPTIONS"]`
->>>>>>> OCaml server (#11)
 	
 	Which simulates going through _"STEPS"_ steps of the input. 
 
@@ -420,19 +242,11 @@ To get started you need to install dot2tex. Follow the instructions here: https:
 There are several different ways to generate latex code, the following are some examples. Visit https://dot2tex.readthedocs.io/en/latest/usage_guide.html#invoking-dot2tex-from-the-command-line for more information.
 
 This command creates a complete latex file: 
-<<<<<<< HEAD
 
 	mi /path/to/source.mc | dot2tex > /path/to/output.tex
 
 To create a figure which can be included in a latex document, --figonly can be added to the command:
 
-=======
-
-	mi /path/to/source.mc | dot2tex > /path/to/output.tex
-
-To create a figure which can be included in a latex document, --figonly can be added to the command:
-
->>>>>>> OCaml server (#11)
 	mi /path/to/source.mc | dot2tex --figonly > /path/to/output.tex
 
 # Examples
@@ -490,15 +304,9 @@ This program displays a digraph and a graph on the same page.
 					[('A','B',2),('A','C',5),('B','C',2),('B','D',4),('C','D',5),('C','E',5),('E','D',2)] in
 
 
-<<<<<<< HEAD
 		-- create your graph
 		let graph = foldr (lam e. lam g. graphAddEdge e.0 e.1 e.2 g) 
 		(foldr graphAddVertex (graphEmpty eqi eqString) [1,2,3,4]) [(1,2,""),(3,2,""),(1,3,""),(3,4,"")] in
-=======
-	-- create your graph
-	let graph = foldr (lam e. lam g. graphAddEdge e.0 e.1 e.2 g) 
-	(foldr graphAddVertex (graphEmpty eqi eqString) [1,2,3,4]) [(1,2,""),(3,2,""),(1,3,""),(3,4,"")] in
->>>>>>> OCaml server (#11)
 
 	visualize [
 		Digraph(digraph, char2string,int2string,[]),
