@@ -16,6 +16,7 @@ class NFAController {
                 let name = d3.select(this).attr("id")
                 console.log(nfaModel.visualizationModel.getStateByName(name))
             })
+            /* < -- TEMPORARY       */
 
         const simulationCallback = d => {
             /*might need to be more general if users can change the shapes of nodes*/
