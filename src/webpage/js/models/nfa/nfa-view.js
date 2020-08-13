@@ -51,6 +51,7 @@ class NFAView {
             this.model.getInfoStatusAndText(),
             this.model.input,
             idx => this.model.isCurrentInputIndex(idx))
+
         ModelRender(
             this.modelRoot.lastElementChild, 
             this.model.getDot(), 
