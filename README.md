@@ -363,6 +363,7 @@ The following command runs the code, which is located in the file "test.mc", and
 
 The following command runs the code, which is located in the file "test.mc", and creates a pdf file called "myDigraph.pdf" from the output:
 
+
 	mi test.mc | dot  -Tpdf -o graph.pdf
 
 
