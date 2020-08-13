@@ -2,13 +2,7 @@ open Lwt.Infix
 open Cohttp_lwt_unix
 open Websocket
 
-<<<<<<< HEAD
 let modified = ref true
-=======
-
-type flag = { modified : bool ref}
-let file_flag = {modified = ref false}
->>>>>>> Communication for updates via HTTP message body (#13)
 let visualize = ref ""
 let no_file = ref false
 let port = ref 3030
@@ -31,14 +25,7 @@ let check_if_specific_file_mod event =
                   |> List.hd
   in
   if contains event "Updated" && contains event file_name then
-<<<<<<< HEAD
     modified := true
-=======
-    begin
-      ignore @@ Sys.command (String.concat "" ["mi "; !visualize;" > ../webpage/js/data-source.json "]);
-      (file_flag.modified) := true
-    end
->>>>>>> Communication for updates via HTTP message body (#13)
 
 let serve_file ~docroot ~uri =
   let fname = Server.resolve_local_file ~docroot ~uri in
@@ -78,7 +65,6 @@ let handler ~docroot ~index (_ch ,_conn) req _body =
   let uri = Cohttp.Request.uri req in
   let path =  Uri.path uri in
   match Request.meth req with
-<<<<<<< HEAD
   | (`GET | `HEAD) ->
      begin
        match path with
@@ -123,25 +109,6 @@ let handler ~docroot ~index (_ch ,_conn) req _body =
      end
   | `POST ->
      if contains (Uri.to_string uri) "js/data-source.json" then
-=======
-  | (`GET | `HEAD)  ->
-     if contains (Uri.to_string uri) "js/flag.json" then
-       Server.respond_string ~status:`OK
-         ~body:(string_of_bool !(file_flag.modified)) ()
-     else
-       serve ~docroot ~index uri path
-  | `POST ->
-     if contains (Uri.to_string uri) "js/flag.json" then
-       begin
-         Cohttp_lwt.Body.to_string _body >|= (fun msg ->
-         if contains msg "false" then
-           (file_flag.modified) := false
-       )
-         >>= (fun _ -> Server.respond_string ~status:`OK
-                         ~body:"POST request accepted" ())
-       end
-     else if contains (Uri.to_string uri) "js/data-source.json" then
->>>>>>> Communication for updates via HTTP message body (#13)
        begin
          modified := true;
          Cohttp_lwt.Body.to_string _body >|= (fun msg ->
