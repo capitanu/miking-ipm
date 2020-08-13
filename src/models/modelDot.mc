@@ -9,6 +9,7 @@ type dotEdge = {
     extra: String
 }
 
+
 type dotVertex = {
     name: String,
     extra: String
