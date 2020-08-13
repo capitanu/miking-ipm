@@ -141,3 +141,4 @@ let modelGetDotSimulateTo = lam model. lam steps. lam direction. lam vSettings.
 -- converts and prints the given model in dot.
 let modelGetDot = lam model. lam direction.
     modelGetDotWithOptions model direction []
+
