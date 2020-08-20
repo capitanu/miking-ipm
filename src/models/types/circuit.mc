@@ -127,5 +127,3 @@ let circ = Series [
             ],
             Component("ground","g",0.0)
         ] in ()
-
-
