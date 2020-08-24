@@ -102,7 +102,7 @@ let nfaGetDotSimulate = lam nfa. lam v2str. lam l2str. lam id. lam direction. la
         else (last path).1 in 
     let finalEdge = if (lti steps 1) then None() 
         else last path in
-    let dotVertices = join [[initDotVertex "start" "style=invis" (getStdNodeSettings ())],
+    let dotVertices = join [[initDotVertex "start" "style=invis"],
         map (lam v. 
             let dbl = if (any (lam x. eqv x v) nfa.acceptStates) then "shape=doublecircle" else "" in
             let settings = (if (lti (negi 1) steps) then 
