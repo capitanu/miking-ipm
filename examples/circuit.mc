@@ -22,5 +22,5 @@ let circuit = Parallel [
 
 -- call function 'visualize' to get visualization code for the circuit
 visualize [
-	Circuit(circuit)
+	Circuit(circuit,[("resistor","shape=rect")])
 ]

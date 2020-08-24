@@ -109,24 +109,38 @@ let circGetAllEdges = lam circ.
     else []
 end
 
+-- calculates the number of supporting nodes of a parallel connection
+recursive
+let countInnerDepth = lam circ.
+    match circ with Component (_,name,_) then 
+        0
+    else match circ with Series circ_lst then
+        let temp = (map (lam c. countInnerDepth c) circ_lst) in
+        max (lam l. lam r. subi l r) (map (lam c. countInnerDepth c) circ_lst)
+    else match circ with Parallel circ_lst then
+        let m = max (lam l. lam r. subi l r) (map (lam c. countInnerDepth c) circ_lst) in
+        addi (length circ_lst) m
+    else 0
+end
+
 mexpr
 let circ = Parallel [
             Series[
             Series [
-            Component ("battery","V1",11.0,1),
-            Component ("resistor","R3",1.4,1),
-            Component ("resistor","R1",1.4,1),
-            Component ("battery","V2",11.0,1),
-            Component ("resistor","R2",1.4,1)
+            Component ("battery","V1",11.0,true),
+            Component ("resistor","R3",1.4,true),
+            Component ("resistor","R1",1.4,true),
+            Component ("battery","V2",11.0,true),
+            Component ("resistor","R2",1.4,true)
             ],
             Parallel [
-            Component ("battery","V3",0.0,1),
-            Component ("resistor", "R4",0.0,1)
+            Component ("battery","V3",0.0,true),
+            Component ("resistor", "R4",0.0,true)
             ],
             Series [
-                Component("resistor", "r5",0.0,1)
+                Component("resistor", "r5",0.0,true)
             ]
             ],
-            Component("ground","g",0.0,1,0)
+            Component("ground","g",0.0,1,true)
         ] in 
 utest circGetAllEdges circ with [] in ()
