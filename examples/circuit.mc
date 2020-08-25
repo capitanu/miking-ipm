@@ -69,6 +69,11 @@ let capacitatorSettings = foldl concat [] ["shape=none, color=none height=0 widt
 
 -- call function 'visualize' to get visualization code for the circuit
 visualize [
+    -- simple circuit
+    Circuit(
+        circuit,[]
+    ),
+    -- customized circuit
 	Circuit(
         circuit,[
             ("ammeter","shape=circle style=filled fillcolor=lightgreen height=0.2 width=0.2 label=\\\"A\\\"",""),
