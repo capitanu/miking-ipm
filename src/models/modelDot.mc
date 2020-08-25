@@ -1,21 +1,28 @@
 -- This file provides toDot functions for all models defined in model.mc.
 include "model.mc"
+include "types/circuit/circCompDot.mc"
 
 -- constructor for dotEdge
 let initDotEdge = lam from. lam to. lam label. lam delimiter. lam eSettings.
-    {from = from, to = to, label = label, delimiter = delimiter, eSettings = eSettings}
+    {from=from, to=to, label=label, delimiter=delimiter, eSettings=eSettings}
 
 -- constructor for dotVertex
 let initDotVertex = lam name. lam settings.
-    {name = name,settings=settings}
+    {name=name, settings=settings}
 
 -- concatenates a list of strings
 let concatList = lam list.
     foldl concat [] list
 
+utest concatList [] with ""
+utest concatList ["a","b","c"] with "abc"
+
 -- gets the quote
 let getQuote = lam id.
     match id with () then "\"" else "\\\""
+
+utest getQuote () with "\""
+utest getQuote 1 with "\\\""
 
 -- formats a dotEdge to dot
 let edgeToDot = lam e. lam modelID.
@@ -24,18 +31,27 @@ let edgeToDot = lam e. lam modelID.
                                                               "id=",quote,e.from,e.label,e.to,quote," "] in
     concatList [e.from," ",e.delimiter," ",e.to," [label=",quote,e.label,quote," ",class,e.eSettings,"];"]
 
+utest edgeToDot (initDotEdge "a" "b" "c" "--" "") () with "a -- b [label=\"c\" ];"
+utest edgeToDot (initDotEdge "a" "b" "c" "--" "") 1  with "a -- b [label=\\\"c\\\" class=\\\"model1edge\\\" id=\\\"acb\\\" ];"
+utest edgeToDot (initDotEdge "a" "b" "c" "--" "color=\"green\"") () with "a -- b [label=\"c\" color=\"green\"];"
+
 -- formats a dotVertex to dot
 let vertexToDot = lam v. lam modelID.
     let quote = getQuote modelID in
-    let class = match modelID with () then "" else concatList ["class=model",(int2string modelID),"node"," "] in
+    let class = match modelID with () then "" else concatList ["class=",quote,"model",(int2string modelID),"node",quote," "] in
     concatList [v.name,"[","id=",quote,v.name,quote," ",class,v.settings,"];"]
+
+utest vertexToDot (initDotVertex "a" "") () with "a[id=\"a\" ];"
+utest vertexToDot (initDotVertex "a" "") 1  with "a[id=\\\"a\\\" class=\\\"model1node\\\" ];"
+utest vertexToDot (initDotVertex "a" "color=\"green\"") () with "a[id=\"a\" color=\"green\"];"
 
 let settingsToDot = lam settings. lam modelID.
     let quote = getQuote modelID in
     foldl (lam output. lam t. concatList [output, t.0,"=",quote,t.1,quote," "]) "" settings
 
--- utest (settingsToDot [("a")])
-
+utest settingsToDot [] () with ""
+utest settingsToDot [("label","start"),("color","green")] () with "label=\"start\" color=\"green\" "
+utest settingsToDot [("label","start"),("color","green")] 1  with "label=\\\"start\\\" color=\\\"green\\\" "
 
 -- prints a given model in dot syntax
 let getDot = lam graphType. lam direction. lam vertices. lam edges. lam id. lam extra.
@@ -111,110 +127,6 @@ let nfaGetDotSimulate = lam nfa. lam v2str. lam l2str. lam id. lam direction. la
 -- Gets a NFA in dot.
 let nfaGetDot = lam nfa. lam v2str. lam l2str. lam id. lam direction. lam vSettings.
     nfaGetDotSimulate nfa v2str l2str id direction vSettings "" (negi 1)
-
--- returns a table data element with the given characteristics
-let makeTDElem = lam color. lam elem_width. lam elem_height. lam quote.
-    foldl concat [] ["<td ",
-        "bgcolor=",quote,color,quote,
-        " width=",quote,(int2string elem_width),quote,
-        " height=",quote,(int2string elem_height),quote,
-        "></td>\n"]
-
-let circUnconnectedToDot = lam name. lam quote. lam settings. lam value_str.
-    let figName = concat name "fig" in
-    foldl concat [] [concatList [figName,"[id=",quote,figName,quote," ","label=",quote,quote,settings.0," xlabel=",quote,value_str,quote," ","];",
-                name,"[id=",quote,name,quote," shape=point style=filled color=black height=0.05 width=0.05",
-                "];",
-                figName,"--",name,";"]]
-
--- gets the resistor component in dot
-let resistorToDot = lam quote. lam name. lam value. lam custom_settings. lam isConnected.
-    let settings = match custom_settings with Some (setting,unit) then (setting,unit) else
-                ("style=filled color=black fillcolor=none shape=rect height=0.1 width=0.3 "," &Omega;") in
-    if not (isConnected) then circUnconnectedToDot name quote settings (concat value settings.1) else
-    concatList [name,"[id=",quote,name,quote,
-                " xlabel=",quote,value,settings.1,quote," ",
-                settings.0,
-                " label=",quote,quote,"];"]
-
--- gets the battery component in dot
-let circBatteryToDot = lam quote. lam name. lam value. lam custom_settings. lam isConnected.
-    let side_width = 1 in
-    let center_width = 10 in
-    let side_height = 5 in
-    let center_height = 10 in
-    
-    let settings = match custom_settings with Some (setting,unit) then (setting,unit) else
-        let setting = foldl concat [] ["shape=none, color=none height=0 width=0 margin=0 label=<
-        <table BORDER=",quote,"0",quote," CELLBORDER=",quote,"0",quote," CELLSPACING=",quote,"0",quote," CELLPADDING=",quote,"0",quote,"> 
-            <tr>",
-                (foldl (lam str. lam x. concat str (makeTDElem x.0 x.1 x.2 quote))) "" 
-                    [("black",side_width,side_height),("none",center_width,side_height),("none",side_width,side_height)],
-            "</tr> 
-            <tr>",
-                (foldl (lam str. lam x. concat str (makeTDElem x.0 x.1 x.2 quote))) "" 
-                    [("black",side_width,side_height),("none",center_width,center_height),("black",side_width,side_height)],
-            "</tr>
-            <tr>",
-                (foldl (lam str. lam x. concat str (makeTDElem x.0 x.1 x.2 quote))) "" 
-                    [("black",side_width,side_height), ("none",center_width,side_height),("none",side_width,side_height)],
-            "</tr>   
-        </table>>"
-    ] in (setting,"V") in
-    if not (isConnected) then circUnconnectedToDot name quote settings (concat value settings.1) else
-    concatList [name,"[id=",quote,name,quote," ",
-                        "xlabel=",quote,value,settings.1,quote," ",
-                        settings.0,"];"]
-
-
--- gets the ground component in dot
-let circGroundToDot = lam quote. lam name. lam custom_settings. lam isConnected.
-    let width =5 in
-    let height = 1 in
-    let settings = match custom_settings with Some (setting,unit) then (setting,unit) else
-        let w = foldl concat [] ["shape=none, color=none height=0 width=0 margin=0 label=<
-    <table CELLBORDER=",quote,"0",quote," CELLSPACING=",quote,"0",quote," CELLPADDING=",quote,"0",quote," >\n<tr>",
-            (foldl (lam str. lam x. concat str (makeTDElem x width height quote))) "" ["black","black","black","black","black"],
-        " </tr>\n<tr>",
-           makeTDElem "none" width (muli 2 height) quote,
-       "</tr>\n<tr>",
-            (foldl (lam str. lam x. concat str (makeTDElem x width height quote))) "" ["none","black","black","black","none"],
-        "</tr>\n<tr>",
-            makeTDElem "none" width (muli 2 height) quote,
-        "</tr>\n<tr>",
-            (foldl (lam str. lam x. concat str (makeTDElem x width height quote))) "" ["none","none","black","none","none"],
-        "</tr>\n</table>> "] in
-        (w,"") in
-    if not (isConnected) then circUnconnectedToDot name quote settings ""
-    else foldl concat [] [name,"[id=",quote,name,quote," ","label=",quote,quote,settings.0," ","];"]
-
-let circOtherToDot = lam quote. lam name. lam value. lam _. lam custom_settings. lam isConnected.
-    let value_str = match value with None () then "" else (foldl concat [] [(value)," "]) in
-    let settings = match custom_settings with Some (setting,unit) then (setting,unit) else
-        (foldl concat [] ["style=filled fillcolor=white shape=circle label=",quote,quote, " xlabel=",quote,value_str,quote],"") in
-    if not (isConnected) then circUnconnectedToDot name quote settings value_str
-    else concatList [name,"[id=",quote,name,quote," ",
-                "xlabel=",quote,value_str,settings.1,quote," ",
-                settings.0,"];"]
-
--- returns a component in dot.
-let componentToDot = lam comp. lam quote. lam fig_settings.
-    match comp with Component (comp_type,name,maybe_value,isConnected) then
-        let figure_setting = 
-            let fig = find (lam x. if (setEqual eqchar x.0 comp_type) then true else false) fig_settings in
-            match fig with Some (_,setting,unit) then Some (setting,unit) else None() in
-        -- round to integer
-        let value = match maybe_value with None () then 0.0 else maybe_value in
-        let value_str = int2string (roundfi value) in
-        match comp_type with "resistor" then
-            resistorToDot quote name value_str figure_setting isConnected
-        else match comp_type with "battery" then
-            circBatteryToDot quote name value_str figure_setting isConnected
-        else match comp_type with "ground" then
-            circGroundToDot quote name figure_setting isConnected
-        else 
-            circOtherToDot quote name value_str "unit" figure_setting isConnected
-    else []
 
 -- goes through the circuit and returns the edges in dot.
 -- the order of the edges returned determines the layout of the circuit
