@@ -122,7 +122,7 @@ let makeTDElem = lam color. lam elem_width. lam elem_height. lam quote.
 
 let circUnconnectedToDot = lam name. lam quote. lam settings. lam value_str.
     let figName = concat name "fig" in
-    foldl concat [] [concatList [figName,"[id=",quote,figName,quote," ","label=",quote,quote,settings.0,"xlabel=",quote,value_str,quote," ","];",
+    foldl concat [] [concatList [figName,"[id=",quote,figName,quote," ","label=",quote,quote,settings.0," xlabel=",quote,value_str,quote," ","];",
                 name,"[id=",quote,name,quote," shape=point style=filled color=black height=0.05 width=0.05",
                 "];",
                 figName,"--",name,";"]]
@@ -132,8 +132,8 @@ let resistorToDot = lam quote. lam name. lam value. lam custom_settings. lam isC
     let settings = match custom_settings with Some (setting,unit) then (setting,unit) else
                 ("style=filled color=black fillcolor=none shape=rect height=0.1 width=0.3 "," &Omega;") in
     if not (isConnected) then circUnconnectedToDot name quote settings (concat value settings.1) else
-    concatList [name,"[id=",quote,name,quote," ",
-                "xlabel=",quote,value,settings.1,quote," ",
+    concatList [name,"[id=",quote,name,quote,
+                " xlabel=",quote,value,settings.1,quote," ",
                 settings.0,
                 " label=",quote,quote,"];"]
 
