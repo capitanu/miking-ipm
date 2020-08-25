@@ -12,7 +12,7 @@ mexpr
 -- create your circuit
 let circuit = Parallel [
     Series[
-    Component ("ammeter","Afff",None(),true),
+    Component ("ammeter","Afff",1.0,true),
     Component ("ground","g",0.0,false)
     ],
     Series [
