@@ -4,23 +4,15 @@
 -- according to the order of the list, 
 -- and all parallel/series connections are connected by the first component/components
 -- (by order of the list).
--- All components have a type ("battery" "resistor" or "ground"), a name and a value (voltage/resistance/None ()).
+-- All components have a type, a name and a value (voltage/resistance/None ()).
 
 include "set.mc"
 include "char.mc"
 
--- (type,name,value) where type is either "resistor", "battery" or "ground"
--- for example ("battery","V1",10.0) is a battery named V1 with value 10 volt
-
 type Circuit
-    con Component : (circ_type,name,value,e_in) -> Circuit
+    con Component : (circ_type,name,value,isConnected) -> Circuit
     con Series : [Component] -> Circuit 
     con Parallel : [Component] -> Circuit
-
--- gets the name of component comp
-let circGetComponentName = lam comp. 
-    match comp with Component (_,name,_) then name
-    else None ()
 
 -- returns all components in circuit circ
 recursive
@@ -36,8 +28,6 @@ end
 -- creates edges between all elements in from_lst to all elements in to_lst
 -- returns a list of tuples (a,b)
 let makeEdges = lam from_lst. lam to_lst.
-    utest from_lst with [] in
-    utest to_lst with [] in
     foldl (lam lst. lam a. 
         concat lst (map (lam b. 
             match a with Component (_,a_name,_,_) then
@@ -49,6 +39,15 @@ let makeEdges = lam from_lst. lam to_lst.
         to_lst)
     ) [] from_lst
     
+utest makeEdges [Component ("ground","g",None (), false),Component("capacitator","c",Some (8.0),true)]
+                [Component ("ground","g",None (), false),Component ("resistor","R3",Some (1.4),true)] 
+                with 
+                [
+                    (Component ("ground","g",None (), false),Component ("ground","g",None (), false)),
+                    (Component ("ground","g",None (), false),Component ("resistor","R3",Some (1.4),true)),
+                    (Component("capacitator","c",Some (8.0),true),Component ("ground","g",None (), false)),
+                    (Component("capacitator","c",Some (8.0),true),Component ("resistor","R3",Some (1.4),true))
+                ] 
 -- gets the first component (or components in case of a parallel connection) in the circuit
 recursive
 let circHead = lam circ. 
@@ -59,6 +58,8 @@ let circHead = lam circ.
     else []
 end
 
+utest circHead (Series [Component ("ground","g",None (), false),Component ("resistor","R3",Some (1.4),true), Component("capacitator","c",Some (8.0),true)])
+    with [Component ("ground","g",None (), false)]
 -- gets the last component (or components in case of a parallel connection) in the circuit
 recursive
 let circLast = lam circ.
@@ -68,6 +69,9 @@ let circLast = lam circ.
         foldl (lam res. lam elem. concat res (circLast elem)) [] lst
     else []
 end
+
+utest circLast (Series [Component ("ground","g",None (), false),Component ("resistor","R3",Some (1.4),true), Component("capacitator","c",Some (8.0),true)])
+    with [Component("capacitator","c",Some (8.0),true)]
 
 -- returns all connections in the circuit as a list of tuples 
 -- where (a,b) means that there is a wire from a to b
@@ -93,17 +97,15 @@ let circGetAllEdges = lam circ.
                 let other_components = slice circ_lst (addi 1 i) final_index in
                 let to = join (map (lam x. 
                     circHead x
-                --replace with compEq
                 ) other_components) in
                 let from_edges = circGetAllEdges comp in
                 let edges = concat (from_edges) (makeEdges from to) in
                 if (eqi i 0) then 
                     let from_snd = join (map (lam x. 
                     circLast x
-                --replace with compEq
                 ) other_components) in
-                    let to_snd = from in
-                    join [edges,makeEdges from_snd to_snd] 
+                let to_snd = from in
+                join [edges,makeEdges from_snd to_snd] 
                 else edges
             ) circ_lst)
     else []
@@ -120,24 +122,18 @@ let countInnerDepth = lam circ.
     else 0
 end
 
+utest countInnerDepth (Parallel [Component ("battery","V1",Some (11.0),true),
+            Component ("resistor","R3",Some (1.4),true)]) with 2
 mexpr
 let circ = Parallel [
-            Series[
             Series [
-            Component ("battery","V1",11.0,true),
-            Component ("resistor","R3",1.4,true),
-            Component ("resistor","R1",1.4,true),
-            Component ("battery","V2",11.0,true),
-            Component ("resistor","R2",1.4,true)
-            ],
-            Parallel [
-            Component ("battery","V3",0.0,true),
-            Component ("resistor", "R4",0.0,true)
+            Component ("battery","V1",Some (11.0),true),
+            Component ("resistor","R3",Some (1.4),true)
             ],
             Series [
-                Component("resistor", "r5",0.0,true)
+                Component ("ground","g",None (), false),
+                Component("capacitator","c",Some (8.0),true)
             ]
-            ],
-            Component("ground","g",0.0,1,true)
-        ] in 
-utest circGetAllEdges circ with [] in ()
+        ] in
+utest (length (circGetAllComponents circ)) with 4 in
+utest (length (circGetAllEdges circ)) with 4 in ()
