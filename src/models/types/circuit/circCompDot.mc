@@ -83,6 +83,10 @@ let circGroundToDot = lam quote. lam name. lam custom_settings. lam isConnected.
     else foldl concat [] [name,"[id=",quote,name,quote," ","label=",quote,quote,settings.0," ","];"]
 
 let circOtherToDot = lam quote. lam name. lam value. lam _. lam custom_settings. lam isConnected.
+<<<<<<< HEAD
+=======
+    
+>>>>>>> c0158352ab3131e0306aa12d8055dd8fa832ccd0
     let settings = match custom_settings with Some (setting,unit) then (setting,unit) else
         (foldl concat [] ["style=filled fillcolor=white shape=circle label=",quote,quote, " xlabel=",quote,value,quote]," ") in
     let value_str = match value with "" then "" else (foldl concat [] [value," ",settings.1," "]) in
