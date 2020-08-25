@@ -17,7 +17,11 @@ let nfaStartState = "a" in
 let nfaAcceptStates = ["a"] in
 
 -- constructing the NFA
+<<<<<<< HEAD
 let nfa = nfaConstr nfaStates nfaTransitions nfaStartState nfaAcceptStates eqStr eqchar in
+=======
+let nfa = nfaConstr nfaStates nfaTransitions nfaStartState nfaAcceptStates eqstr eqchar in
+>>>>>>> 737cd46f5ab8ac272a480d9605d0ee557d0eea42
 
 -- The input for simulation is given here as the second argument
 -- in the constructor.

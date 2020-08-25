@@ -6,7 +6,6 @@
 -- (by order of the list).
 -- All components have a type, a name and a value (voltage/resistance/None ()).
 
-include "set.mc"
 include "char.mc"
 
 type Circuit
@@ -17,11 +16,12 @@ type Circuit
 -- returns all components in circuit circ
 recursive
 let circGetAllComponents = lam circ.
+    let formatComponents = lam list. foldl (lam lst. lam comp. concat lst (circGetAllComponents comp)) [] list in
     match circ with Component (_,name,_,_) then [circ] 
     else match circ with Series circ_lst then 
-        foldl (lam lst. lam comp. concat lst (circGetAllComponents comp)) [] circ_lst
+        formatComponents circ_lst
     else match circ with Parallel circ_lst then 
-        foldl (lam lst. lam comp. concat lst (circGetAllComponents comp)) [] circ_lst
+        formatComponents circ_lst
     else []
 end
 

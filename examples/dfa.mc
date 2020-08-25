@@ -24,7 +24,11 @@ let startState = "s0" in
 let acceptStates = ["s3"] in
 
 -- constructing the DFA
+<<<<<<< HEAD
 let dfa = dfaConstr states transitions startState acceptStates eqStr eqchar in
+=======
+let dfa = dfaConstr states transitions startState acceptStates eqstr eqchar in
+>>>>>>> 737cd46f5ab8ac272a480d9605d0ee557d0eea42
 
 
 -- The input for simulation is given here as the second argument
