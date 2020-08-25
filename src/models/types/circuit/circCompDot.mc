@@ -14,10 +14,10 @@ utest makeTDElem "green" 1 2 "\"" with "<td bgcolor=\"green\" width=\"1\" height
 
 let circUnconnectedToDot = lam name. lam quote. lam settings. lam value_str.
     let figName = concat name "fig" in
-    foldl concat [] [concatList [figName,"[id=",quote,figName,quote," ","label=",quote,quote,settings.0," xlabel=",quote,value_str,quote," ","];",
+    concatList [figName,"[id=",quote,figName,quote," ","label=",quote,quote,settings.0," xlabel=",quote,value_str,quote," ","];",
                 name,"[id=",quote,name,quote," shape=point style=filled color=black height=0.05 width=0.05",
                 "];",
-                figName,"--",name,";"]]
+                figName,"--",name,";"]
 
 -- gets the resistor component in dot
 let resistorToDot = lam quote. lam name. lam value. lam custom_settings. lam isConnected.
