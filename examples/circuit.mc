@@ -11,8 +11,8 @@ mexpr
 
 -- create your circuit
 let circuit = Parallel [
-    Component ("resistor","V1",0.0,true),
-    Component ("ground","g",0.0,false)
+    Component ("r","V1",11.0,false),
+    Component ("ground","g",0.0,true)
 ] in
 
 -- call function 'visualize' to get visualization code for the circuit
