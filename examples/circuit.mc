@@ -17,5 +17,5 @@ let circuit = Parallel [
 
 -- call function 'visualize' to get visualization code for the circuit
 visualize [
-	Circuit(circuit,[("r","shape=rect label=\\\"yey\\\"","k")])
+	Circuit(circuit,[("r","shape=rect","k")])
 ]
