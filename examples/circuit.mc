@@ -11,16 +11,11 @@ mexpr
 
 -- create your circuit
 let circuit = Parallel [
-    Component ("battery","V1",11.0,true),
-    Series[
-    Component ("battery","V3",1.0,true),
-    Component ("resistor", "R4",7.0,true),
-    Component("resistor","r1",0.0,true),
-    Component ("ground","gr",None(),false)
-    ]
+    Component ("r","V1",11.0,false),
+    Component ("ground","g",0.0,true)
 ] in
 
 -- call function 'visualize' to get visualization code for the circuit
 visualize [
-	Circuit(circuit,[("resistor","shape=rect")])
+	Circuit(circuit,[("r","shape=rect label=\\\"yey\\\"","k")])
 ]
