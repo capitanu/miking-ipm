@@ -10,13 +10,6 @@ let initDotEdge = lam from. lam to. lam label. lam delimiter. lam eSettings.
 let initDotVertex = lam name. lam settings.
     {name=name, settings=settings}
 
--- concatenates a list of strings
-let concatList = lam list.
-    foldl concat [] list
-
-utest concatList [] with ""
-utest concatList ["a","b","c"] with "abc"
-
 -- returns the correct formatted quote. If an id is passed, 
 -- the quote is returned in JSON format, and in dot otherwise. 
 let getQuote = lam id.
@@ -28,9 +21,9 @@ utest getQuote 1 with "\\\""
 -- formats a dotEdge to dot.
 let edgeToDot = lam e. lam modelID.
     let quote = getQuote modelID in
-    let class = match modelID with () then "" else concatList ["class=",quote,"model",(int2string modelID),"edge",quote," ",
+    let class = match modelID with () then "" else join ["class=",quote,"model",(int2string modelID),"edge",quote," ",
                                                               "id=",quote,e.from,e.label,e.to,quote," "] in
-    concatList [e.from," ",e.delimiter," ",e.to," [label=",quote,e.label,quote," ",class,e.eSettings,"];"]
+    join [e.from," ",e.delimiter," ",e.to," [label=",quote,e.label,quote," ",class,e.eSettings,"];"]
 
 utest edgeToDot (initDotEdge "a" "b" "c" "--" "") () with "a -- b [label=\"c\" ];"
 utest edgeToDot (initDotEdge "a" "b" "c" "--" "") 1  with "a -- b [label=\\\"c\\\" class=\\\"model1edge\\\" id=\\\"acb\\\" ];"
@@ -39,8 +32,8 @@ utest edgeToDot (initDotEdge "a" "b" "c" "--" "color=\"green\"") () with "a -- b
 -- formats a dotVertex to dot.
 let vertexToDot = lam v. lam modelID.
     let quote = getQuote modelID in
-    let class = match modelID with () then "" else concatList ["class=",quote,"model",(int2string modelID),"node",quote," "] in
-    concatList [v.name,"[","id=",quote,v.name,quote," ",class,v.settings,"];"]
+    let class = match modelID with () then "" else join ["class=",quote,"model",(int2string modelID),"node",quote," "] in
+    join [v.name,"[","id=",quote,v.name,quote," ",class,v.settings,"];"]
 
 utest vertexToDot (initDotVertex "a" "") () with "a[id=\"a\" ];"
 utest vertexToDot (initDotVertex "a" "") 1  with "a[id=\\\"a\\\" class=\\\"model1node\\\" ];"
@@ -49,7 +42,7 @@ utest vertexToDot (initDotVertex "a" "color=\"green\"") () with "a[id=\"a\" colo
 -- formats vSettings to dot.
 let settingsToDot = lam settings. lam modelID.
     let quote = getQuote modelID in
-    foldl (lam output. lam t. concatList [output, t.0,"=",quote,t.1,quote," "]) "" settings
+    strJoin " " (map (lam t. join [t.0,"=",quote,t.1,quote]) settings)
 
 utest settingsToDot [] () with ""
 utest settingsToDot [("label","start"),("color","green")] () with "label=\"start\" color=\"green\" "
@@ -57,12 +50,12 @@ utest settingsToDot [("label","start"),("color","green")] 1  with "label=\\\"sta
 
 -- prints a given model in dot syntax
 let getDot = lam graphType. lam direction. lam vertices. lam edges. lam id. lam extra.
-    let output = foldl concat [] [[graphType," {\n",extra,"\n","rankdir=",direction,";"],
-        (map (lam v. vertexToDot v id) vertices),
-        (map (lam e. edgeToDot e id) edges),
-        ["}"]
-    ] in
-    foldl concat [] output
+    join [
+        graphType," {\n",extra,"\n","rankdir=",direction,";",
+        join (map (lam v. vertexToDot v id) vertices),
+        join (map (lam e. edgeToDot e id) edges),
+        "}"
+    ]
 
 -- returns the standard active node setting
 let getActiveNodeSetting = lam _.
@@ -85,7 +78,7 @@ let btreeGetDot = lam tree. lam node2str. lam id. lam direction. lam vSettings.
 
 -- returns a graph in dot.
 let graphGetDot = lam graph. lam v2str. lam l2str. lam id. lam direction. lam graphType. lam vSettings.
-    let delimiter = if ((setEqual eqchar) graphType "graph") then "--" else "->" in
+    let delimiter = if (eqstr graphType "graph") then "--" else "->" in
     let dotVertices = map (lam v. 
         let extra = find (lam x. graph.eqv x.0 v) vSettings in
         let settings = concat (match extra with Some e then (settingsToDot e.1 id) else "") "" in
@@ -134,14 +127,14 @@ let nfaGetDot = lam nfa. lam v2str. lam l2str. lam id. lam direction. lam vSetti
 -- the order of the edges returned determines the layout of the circuit
 recursive
 let circGetDotEdges = lam circ. lam id. lam inClosure.
-    let cluStart = lam id. lam dir. concatList ["{rank=same; g",int2string id,dir] in
-    let cluEnd = lam id. lam dir. concatList [" -- g",int2string id,dir,";"] in
+    let cluStart = lam id. lam dir. join ["{rank=same; g",int2string id,dir] in
+    let cluEnd = lam id. lam dir. join [" -- g",int2string id,dir,";"] in
     match circ with Component (_,name,_) then 
         concat " -- " name
     else match circ with Series circ_lst then
         let content = foldl (lam output. lam elem. concat output (circGetDotEdges elem id true)) "" circ_lst in
         if inClosure then content
-        else concatList [cluStart id "L",content,cluEnd id "R","}"]
+        else join [cluStart id "L",content,cluEnd id "R","}"]
     else match circ with Parallel circ_lst then
         let depth = mapi (lam i. lam elem. countInnerDepth elem) circ_lst in
         let contentList = mapi (lam i. lam elem. 
@@ -149,15 +142,15 @@ let circGetDotEdges = lam circ. lam id. lam inClosure.
             let currId = foldl addi newId (slice depth 0 i) in
             let nextId = foldl addi newId (slice depth 0 (addi i 1)) in
             let minLen = if lti currId nextId 
-                         then concatList ["[minlen=",int2string (subi nextId currId),"]"] else "" in 
-            concatList [if eqi (length circ_lst) (addi i 1) then ""
-                        else concatList ["g",int2string currId,"L"," -- g",int2string (addi nextId 1),"L",minLen,
+                         then join ["[minlen=",int2string (subi nextId currId),"]"] else "" in 
+            join [if eqi (length circ_lst) (addi i 1) then ""
+                        else join ["g",int2string currId,"L"," -- g",int2string (addi nextId 1),"L",minLen,
                         " g",int2string currId,"R",cluEnd (addi nextId 1) "R"],
                         cluStart currId "L",circGetDotEdges elem (addi 1 currId) true,cluEnd currId "R","}"]
             ) circ_lst in
-        concatList [if inClosure then concatList [cluEnd id "L", "}"] else "",
-                    concatList contentList,
-                    if inClosure then concatList [cluStart id "R"] else ""]
+        join [if inClosure then join [cluEnd id "L", "}"] else "",
+                    join contentList,
+                    if inClosure then join [cluStart id "R"] else ""]
     else error "Unknown circuit type"
 end
 
@@ -166,9 +159,9 @@ let circGetDot = lam circ. lam id. lam fig_settings.
     let quote = getQuote id in
     let delimiter = "--" in
     let components = circGetAllComponents circ in
-    let dotComponents = concatList (map (lam c. componentToDot c quote fig_settings) components) in
+    let dotComponents = join (map (lam c. componentToDot c quote fig_settings) components) in
     let dotEdges = circGetDotEdges circ 0 false in
-    concatList ["graph { concentrate=true; splines=ortho; ranksep=0.7; nodesep=0.5; rankdir=BT;",
+    join ["graph { concentrate=true; splines=ortho; ranksep=0.7; nodesep=0.5; rankdir=BT;",
                 dotComponents,
                 "node[shape=point height = 0 width = 0 margin = 0];",
                 dotEdges,
@@ -194,13 +187,11 @@ let modelGetDot = lam model. lam id.
 
 -- prints a model in dot simulated "steps" steps av the "input" input. 
 let modelPrintDotSimulateTo = lam model. lam steps.
-    print (
-        match model with NFA(nfa,input,state2str,label2str,direction,vSettings) then
-            nfaGetDotSimulate nfa state2str label2str () direction vSettings input steps
-        else match model with DFA(dfa,input,state2str,label2str,direction,vSettings) then
-            nfaGetDotSimulate dfa state2str label2str () direction vSettings input steps
-        else ""
-    )
+    match model with NFA(nfa,input,state2str,label2str,direction,vSettings) then
+        print nfaGetDotSimulate nfa state2str label2str () direction vSettings input steps
+    else match model with DFA(dfa,input,state2str,label2str,direction,vSettings) then
+        print nfaGetDotSimulate dfa state2str label2str () direction vSettings input steps
+    else error "unsupported model type"
 
 -- converts and prints the given model in dot.
 let modelPrintDot = lam model.
